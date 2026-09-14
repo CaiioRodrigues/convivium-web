@@ -23,7 +23,13 @@ import type { AuthResult } from '@/lib/types';
 /** Renova com folga, para o token nao vencer no meio do render da pagina. */
 const RENEW_WHEN_LESS_THAN_MS = 60_000;
 
-const PUBLIC_PREFIXES = ['/entrar', '/boleto'];
+/*
+ * Rotas que dispensam sessão. `/api/boleto` precisa entrar aqui junto com
+ * `/boleto`: a página do boleto é pública, mas o download do PDF sai por uma
+ * rota de API própria — sem ela na lista, o link do e-mail abriria a página e
+ * depois jogaria o morador na tela de login ao tentar baixar o boleto.
+ */
+const PUBLIC_PREFIXES = ['/entrar', '/boleto', '/api/boleto'];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some(

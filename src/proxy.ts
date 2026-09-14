@@ -29,7 +29,7 @@ const RENEW_WHEN_LESS_THAN_MS = 60_000;
  * rota de API própria — sem ela na lista, o link do e-mail abriria a página e
  * depois jogaria o morador na tela de login ao tentar baixar o boleto.
  */
-const PUBLIC_PREFIXES = ['/entrar', '/boleto', '/api/boleto'];
+const PUBLIC_PREFIXES = ['/entrar', '/boleto', '/api/boleto', '/definir-senha'];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some(

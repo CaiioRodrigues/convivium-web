@@ -8,7 +8,7 @@ import { Button } from '@/components/ui';
 
 export default async function LayoutDoPortal({ children }: LayoutProps<'/'>) {
   const sessao = await requireCondominium();
-  const itens = menuPara(sessao.activeRole);
+  const secoes = menuPara(sessao.activeRole);
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
@@ -25,7 +25,7 @@ export default async function LayoutDoPortal({ children }: LayoutProps<'/'>) {
           </div>
 
           <div className="flex-1">
-            <BarraLateral itens={itens} />
+            <BarraLateral secoes={secoes} />
           </div>
 
           <div className="border-t border-line pt-4">

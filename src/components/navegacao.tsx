@@ -6,49 +6,64 @@ import type { MembershipRole } from '@/lib/types';
 export interface ItemDeMenu {
   href: string;
   rotulo: string;
-  descricao: string;
+}
+
+export interface SecaoDeMenu {
+  titulo: string | null;
+  itens: ItemDeMenu[];
 }
 
 /**
- * O menu e montado a partir do papel: um morador nao ve sequer o link do
- * caixa. E uma decisao de interface, nao de seguranca — quem barra o acesso
- * de verdade e a API, que le o papel de dentro do JWT assinado.
+ * O menu é montado a partir do papel: um morador não vê sequer o link do
+ * caixa. É uma decisão de interface, não de segurança — quem barra o acesso
+ * de verdade é a API, que lê o papel de dentro do JWT assinado.
  */
-export function menuPara(papel: MembershipRole | null): ItemDeMenu[] {
-  const itens: ItemDeMenu[] = [];
+export function menuPara(papel: MembershipRole | null): SecaoDeMenu[] {
+  const secoes: SecaoDeMenu[] = [];
 
   if (canSeeAccounts(papel)) {
-    itens.push(
-      { href: '/painel', rotulo: 'Painel', descricao: 'Visão geral do condomínio' },
-      { href: '/caixa', rotulo: 'Caixa', descricao: 'Saldo, extrato e lançamentos' },
-      { href: '/despesas', rotulo: 'Despesas', descricao: 'Contas a pagar' },
-      { href: '/cobrancas', rotulo: 'Cobranças', descricao: 'Rateio e inadimplência' },
-    );
+    secoes.push({
+      titulo: null,
+      itens: [
+        { href: '/painel', rotulo: 'Painel' },
+        { href: '/caixa', rotulo: 'Caixa' },
+        { href: '/despesas', rotulo: 'Despesas' },
+        { href: '/cobrancas', rotulo: 'Cobranças' },
+      ],
+    });
   }
 
   if (canManageFinance(papel)) {
-    itens.push(
-      { href: '/faturas', rotulo: 'Faturas', descricao: 'Contas de concessionária em PDF' },
-      { href: '/notificacoes', rotulo: 'Avisos', descricao: 'E-mails enviados aos moradores' },
-    );
+    secoes.push({
+      titulo: 'Documentos',
+      itens: [
+        { href: '/faturas', rotulo: 'Faturas' },
+        { href: '/notificacoes', rotulo: 'Avisos' },
+      ],
+    });
   }
 
-  itens.push({
-    href: '/minhas-cobrancas',
-    rotulo: 'Minhas cobranças',
-    descricao: 'Seus boletos',
+  if (canSeeAccounts(papel)) {
+    secoes.push({
+      titulo: 'Cadastros',
+      itens: [
+        { href: '/cadastros/unidades', rotulo: 'Unidades' },
+        { href: '/cadastros/pessoas', rotulo: 'Pessoas' },
+        { href: '/cadastros/fornecedores', rotulo: 'Fornecedores' },
+        { href: '/cadastros/condominio', rotulo: 'Condomínio' },
+      ],
+    });
+  }
+
+  secoes.push({
+    titulo: secoes.length > 0 ? 'Meu acesso' : null,
+    itens: [{ href: '/minhas-cobrancas', rotulo: 'Minhas cobranças' }],
   });
 
-  return itens;
+  return secoes;
 }
 
-export function LinkDeMenu({
-  item,
-  ativo,
-}: {
-  item: ItemDeMenu;
-  ativo: boolean;
-}) {
+export function LinkDeMenu({ item, ativo }: { item: ItemDeMenu; ativo: boolean }) {
   return (
     <Link
       href={item.href}

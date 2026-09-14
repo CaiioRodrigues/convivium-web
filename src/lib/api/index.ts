@@ -3,6 +3,19 @@ import 'server-only';
 import { apiFetch, apiFetchBlob } from '@/lib/api/core';
 import type {
   ApportionmentMethod,
+  Address,
+  BillingSettings,
+  Block,
+  Condominium,
+  InviteResult,
+  MembershipRole,
+  OccupancyRelation,
+  Person,
+  PixKeyType,
+  RedistributeResult,
+  Unit,
+  UnitKind,
+  UnitList,
   ApportionmentPreview,
   AuthResult,
   BillingCycle,
@@ -239,6 +252,133 @@ export const api = {
       id: string,
       body: { ledgerAccountId?: string; supplierId?: string; description?: string; isApportionable?: boolean } = {},
     ) => apiFetch<Expense>(`/api/faturas/${id}/gerar-despesa`, { method: 'POST', json: body }),
+  },
+
+  condominium: {
+    get: () => apiFetch<Condominium>('/api/condominio'),
+
+    update: (body: {
+      name: string;
+      legalName?: string | null;
+      cnpj?: string | null;
+      address: Address;
+      billing: BillingSettings;
+      pixKey?: string | null;
+      pixKeyType?: PixKeyType | null;
+      pixReceiverName?: string | null;
+      pixReceiverCity?: string | null;
+    }) => apiFetch<Condominium>('/api/condominio', { method: 'PUT', json: body }),
+  },
+
+  units: {
+    list: (includeInactive = true) =>
+      apiFetch<UnitList>('/api/unidades', { query: { includeInactive } }),
+
+    get: (id: string) => apiFetch<Unit>(`/api/unidades/${id}`),
+
+    create: (body: {
+      identifier: string;
+      blockId?: string | null;
+      newBlockName?: string | null;
+      floor?: number | null;
+      kind?: UnitKind;
+      areaM2?: number | null;
+      idealFraction?: number | null;
+      isActive?: boolean;
+    }) => apiFetch<Unit>('/api/unidades', { method: 'POST', json: body }),
+
+    update: (
+      id: string,
+      body: {
+        identifier: string;
+        blockId?: string | null;
+        newBlockName?: string | null;
+        floor?: number | null;
+        kind?: UnitKind;
+        areaM2?: number | null;
+        idealFraction?: number | null;
+        isActive?: boolean;
+      },
+    ) => apiFetch<Unit>(`/api/unidades/${id}`, { method: 'PUT', json: body }),
+
+    deactivate: (id: string) =>
+      apiFetch<Unit>(`/api/unidades/${id}/desativar`, { method: 'POST' }),
+
+    remove: (id: string) => apiFetch<void>(`/api/unidades/${id}`, { method: 'DELETE' }),
+
+    /** Recalcula todas as frações pela área, fazendo a soma fechar em 1. */
+    redistributeByArea: () =>
+      apiFetch<RedistributeResult>('/api/unidades/recalcular-fracoes', { method: 'POST' }),
+
+    createBlock: (name: string) =>
+      apiFetch<Block>('/api/unidades/blocos', { method: 'POST', json: { name } }),
+
+    removeBlock: (id: string) =>
+      apiFetch<void>(`/api/unidades/blocos/${id}`, { method: 'DELETE' }),
+  },
+
+  people: {
+    list: (params: { Search?: string; Role?: MembershipRole; IncludeInactive?: boolean } = {}) =>
+      apiFetch<Person[]>('/api/pessoas', { query: params }),
+
+    get: (id: string) => apiFetch<Person>(`/api/pessoas/${id}`),
+
+    create: (body: {
+      name: string;
+      email?: string | null;
+      cpf?: string | null;
+      phone?: string | null;
+      role?: MembershipRole;
+      unitId?: string | null;
+      relation?: OccupancyRelation;
+      isBillingResponsible?: boolean;
+    }) => apiFetch<Person>('/api/pessoas', { method: 'POST', json: body }),
+
+    update: (
+      id: string,
+      body: { name: string; email?: string | null; cpf?: string | null; phone?: string | null },
+    ) => apiFetch<Person>(`/api/pessoas/${id}`, { method: 'PUT', json: body }),
+
+    changeRole: (id: string, role: MembershipRole) =>
+      apiFetch<Person>(`/api/pessoas/${id}/papel`, { method: 'PUT', json: { role } }),
+
+    linkUnit: (
+      id: string,
+      body: { unitId: string; relation?: OccupancyRelation; isBillingResponsible?: boolean },
+    ) => apiFetch<Person>(`/api/pessoas/${id}/unidades`, { method: 'POST', json: body }),
+
+    setBillingResponsible: (occupancyId: string) =>
+      apiFetch<Person>(`/api/pessoas/vinculos/${occupancyId}/responsavel`, { method: 'POST' }),
+
+    unlinkUnit: (occupancyId: string) =>
+      apiFetch<Person>(`/api/pessoas/vinculos/${occupancyId}`, { method: 'DELETE' }),
+
+    /** Dispara o convite de primeiro acesso por e-mail. */
+    invite: (id: string) =>
+      apiFetch<InviteResult>(`/api/pessoas/${id}/convite`, { method: 'POST' }),
+
+    deactivate: (id: string) =>
+      apiFetch<Person>(`/api/pessoas/${id}/desativar`, { method: 'POST' }),
+
+    /** Rota pública: quem abre o link do convite ainda não tem sessão. */
+    setPassword: (token: string, password: string) =>
+      apiFetch<void>('/api/auth/definir-senha', {
+        method: 'POST',
+        json: { token, password },
+        auth: false,
+      }),
+  },
+
+  suppliersAdmin: {
+    create: (body: { name: string; document?: string | null; email?: string | null; phone?: string | null; notes?: string | null }) =>
+      apiFetch<import('@/lib/types').Supplier>('/api/fornecedores', { method: 'POST', json: body }),
+
+    update: (
+      id: string,
+      body: { name: string; document?: string | null; email?: string | null; phone?: string | null; notes?: string | null },
+    ) => apiFetch<import('@/lib/types').Supplier>(`/api/fornecedores/${id}`, { method: 'PUT', json: body }),
+
+    deactivate: (id: string) => apiFetch<void>(`/api/fornecedores/${id}`, { method: 'DELETE' }),
   },
 
   notifications: {

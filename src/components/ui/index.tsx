@@ -195,7 +195,13 @@ export function EmptyState({
 export function Table({ className, ...props }: ComponentProps<'table'>) {
   return (
     <div className="w-full overflow-x-auto">
-      <table {...props} className={cx('w-full min-w-max text-sm', className)} />
+      {/*
+        No celular a tabela mantém a largura do conteúdo e rola de lado: espremer
+        cinco colunas em 390px deixaria tudo ilegível. Da largura de tablet para
+        cima ela passa a caber na tela — sem isso, a coluna de ações de cada linha
+        ficava fora do campo de visão num monitor, com espaço de sobra ao lado.
+      */}
+      <table {...props} className={cx('w-full min-w-max text-sm md:min-w-full', className)} />
     </div>
   );
 }

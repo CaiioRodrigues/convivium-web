@@ -7,6 +7,14 @@ import { clearSession, readSession, sessionFromAuth, writeSession } from '@/lib/
 
 export interface LoginState {
   erro?: string;
+  /**
+   * O e-mail digitado, devolvido quando a entrada falha.
+   *
+   * O React limpa o formulário assim que a action termina, e errar a senha
+   * obrigaria a redigitar o e-mail inteiro a cada tentativa. A senha nunca
+   * volta por aqui — só o e-mail.
+   */
+  email?: string;
 }
 
 export async function entrar(_anterior: LoginState, dados: FormData): Promise<LoginState> {
@@ -15,7 +23,7 @@ export async function entrar(_anterior: LoginState, dados: FormData): Promise<Lo
   const destino = String(dados.get('destino') ?? '') || '/painel';
 
   if (!email || !senha) {
-    return { erro: 'Informe e-mail e senha.' };
+    return { erro: 'Informe e-mail e senha.', email };
   }
 
   try {
@@ -25,11 +33,15 @@ export async function entrar(_anterior: LoginState, dados: FormData): Promise<Lo
     if (erro instanceof ApiError) {
       // A API responde 401 com mensagem genérica de propósito, para não
       // revelar quais e-mails existem na base.
-      return { erro: erro.isUnauthorized ? 'E-mail ou senha inválidos.' : erro.message };
+      return {
+        erro: erro.isUnauthorized ? 'E-mail ou senha inválidos.' : erro.message,
+        email,
+      };
     }
 
     return {
       erro: 'Não foi possível falar com o servidor. Verifique se a API está no ar.',
+      email,
     };
   }
 

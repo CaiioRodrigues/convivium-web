@@ -22,6 +22,7 @@ export function FormularioDeEntrada({ destino }: { destino: string }) {
           required
           autoFocus
           placeholder="voce@exemplo.com"
+          defaultValue={estado.email}
         />
       </Field>
 

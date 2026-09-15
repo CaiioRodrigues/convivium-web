@@ -57,6 +57,7 @@ export default async function PaginaDasMinhasCobrancas() {
               key={cobranca.id}
               cobranca={cobranca}
               urlDoPdf={`/api/cobrancas/${cobranca.id}/pdf`}
+              urlDaImagem={`/api/cobrancas/${cobranca.id}/imagem`}
             />
           ))}
 
@@ -71,6 +72,7 @@ export default async function PaginaDasMinhasCobrancas() {
                     key={cobranca.id}
                     cobranca={cobranca}
                     urlDoPdf={`/api/cobrancas/${cobranca.id}/pdf`}
+                    urlDaImagem={`/api/cobrancas/${cobranca.id}/imagem`}
                   />
                 ))}
               </div>

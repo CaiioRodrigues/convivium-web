@@ -14,9 +14,12 @@ import type { Charge } from '@/lib/types';
 export function CartaoDeCobranca({
   cobranca,
   urlDoPdf,
+  urlDaImagem,
 }: {
   cobranca: Charge;
   urlDoPdf: string;
+  /** Mesmo boleto em PNG. Opcional: nem toda tela precisa oferecer. */
+  urlDaImagem?: string;
 }) {
   const status = STATUS_DA_COBRANCA[cobranca.status];
   const quitada = cobranca.status === 'Paid';
@@ -109,14 +112,29 @@ export function CartaoDeCobranca({
           <PixCopiaECola payload={cobranca.pixPayload} />
         ) : null}
 
-        <a
-          href={urlDoPdf}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
-        >
-          Abrir boleto em PDF
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={urlDoPdf}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
+          >
+            Abrir boleto em PDF
+          </a>
+
+          {/* A imagem existe para repassar: e o formato que o WhatsApp abre
+              na conversa, com o QR Code a vista. */}
+          {urlDaImagem ? (
+            <a
+              href={urlDaImagem}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
+            >
+              Ver como imagem
+            </a>
+          ) : null}
+        </div>
       </div>
     </Card>
   );

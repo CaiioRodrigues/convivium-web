@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { canManageFinance, canSeeAccounts } from '@/lib/roles';
+import { canManageCondominium, canManageFinance, canSeeAccounts } from '@/lib/roles';
 import type { MembershipRole } from '@/lib/types';
 
 export interface ItemDeMenu {
@@ -36,6 +36,12 @@ export function menuPara(
       titulo: null,
       itens: [
         { href: '/painel', rotulo: 'Painel' },
+        // Logo abaixo do painel de proposito: e o primeiro lugar para onde
+        // olhar num condominio recem-criado, e some do caminho de quem nao
+        // responde pelo predio.
+        ...(canManageCondominium(papel)
+          ? [{ href: '/roteiro', rotulo: 'Roteiro de teste' }]
+          : []),
         { href: '/caixa', rotulo: 'Caixa' },
         { href: '/despesas', rotulo: 'Despesas' },
         { href: '/cobrancas', rotulo: 'Cobranças' },

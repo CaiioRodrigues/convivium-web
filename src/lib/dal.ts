@@ -4,7 +4,7 @@ import { cache } from 'react';
 import { redirect } from 'next/navigation';
 
 import { readSession, type Session } from '@/lib/session';
-import { canManageFinance, canSeeAccounts } from '@/lib/roles';
+import { canManageCondominium, canManageFinance, canSeeAccounts } from '@/lib/roles';
 
 /**
  * Camada de acesso a sessao.
@@ -80,6 +80,22 @@ export async function requireFinanceAccess(): Promise<Session> {
   const session = await requireCondominium();
 
   if (!canManageFinance(session.activeRole)) {
+    redirect('/painel');
+  }
+
+  return session;
+}
+
+/**
+ * Exige sindico ou administradora.
+ *
+ * Fechar rateio e mexer no cadastro do condominio sao decisoes de quem
+ * responde pelo predio; conselho fiscal enxerga as contas, mas nao as muda.
+ */
+export async function requireCondominiumManagement(): Promise<Session> {
+  const session = await requireCondominium();
+
+  if (!canManageCondominium(session.activeRole)) {
     redirect('/painel');
   }
 

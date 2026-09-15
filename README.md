@@ -48,6 +48,10 @@ servidor do Next, então o endereço nunca vai para o pacote do navegador.
 
 ### Acessos de demonstração
 
+Só existem depois de gerar o condomínio de demonstração, no hub em
+`/condominios`. A tela de entrada não lista mais nenhum e-mail: num ambiente
+de verdade isso era um cardápio de alvos para quem chegasse na página.
+
 Senha para todos: `Convivium@123`
 
 | E-mail | Papel | O que vê |
@@ -55,6 +59,10 @@ Senha para todos: `Convivium@123`
 | `sindico@convivium.local` | Síndico | Tudo |
 | `conselho@convivium.local` | Conselho | Leitura das contas, sem movimentar |
 | `morador@convivium.local` | Morador | Só as próprias cobranças |
+
+Num condomínio novo, quem mostra o caminho é o **roteiro de teste**
+(`/roteiro`): ele lê o estado real da base e diz, na ordem, o que ainda falta
+para o primeiro boleto sair.
 
 ### Comandos
 
@@ -72,6 +80,7 @@ pnpm lint        # eslint
 | Rota | Quem acessa | O que faz |
 |---|---|---|
 | `/painel` | Conselho ↑ | Saldo, resultado do mês, inadimplência e os gráficos |
+| `/roteiro` | Síndico ↑ | Teste guiado do ciclo, do cadastro ao boleto enviado |
 | `/caixa` | Conselho ↑ | Contas, saldos e extrato com filtros |
 | `/despesas` | Conselho ↑ | Contas a pagar; baixa e estorno para quem pode movimentar |
 | `/cobrancas` | Conselho ↑ | Prévia do rateio, ciclos e inadimplência |

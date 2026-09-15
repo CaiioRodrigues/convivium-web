@@ -188,9 +188,26 @@ export const api = {
       competence?: string;
       supplierId?: string | null;
       isApportionable?: boolean;
-      documentNumber?: string;
-      notes?: string;
+      // Anulaveis como no update: limpar o campo apaga o que estava la, e
+      // `undefined` sumiria do JSON deixando o valor antigo de pe.
+      documentNumber?: string | null;
+      notes?: string | null;
     }) => apiFetch<Expense>('/api/despesas', { method: 'POST', json: body }),
+
+    update: (
+      id: string,
+      body: {
+        description: string;
+        ledgerAccountId: string;
+        amount: number;
+        dueDate: string;
+        competence?: string;
+        supplierId?: string | null;
+        isApportionable?: boolean;
+        documentNumber?: string | null;
+        notes?: string | null;
+      },
+    ) => apiFetch<Expense>(`/api/despesas/${id}`, { method: 'PUT', json: body }),
 
     pay: (id: string, body: { bankAccountId: string; paidOn?: string; amount?: number }) =>
       apiFetch<Expense>(`/api/despesas/${id}/pagar`, { method: 'POST', json: body }),

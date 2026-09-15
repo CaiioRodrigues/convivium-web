@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 import { api } from '@/lib/api';
 import { requireFinanceAccess } from '@/lib/dal';
@@ -43,6 +44,11 @@ export default async function PaginaDeFaturas() {
         <div className="space-y-4">
           {faturas.items.map((fatura) => {
             const situacao = STATUS_DA_FATURA[fatura.status];
+            // Corrigir vale enquanto a fatura nao virou despesa, e nao so
+            // quando o leitor admite que falhou. Leitura errada com cara de
+            // certa e o caso perigoso: o valor esta la, plausivel, e sem
+            // formulario nao havia como troca-lo.
+            const podeCorrigir = fatura.status !== 'Converted';
             const precisaConferir = fatura.status === 'NeedsReview';
             const podeGerarDespesa =
               fatura.status !== 'Converted' && fatura.amount !== null && fatura.dueDate !== null;
@@ -113,12 +119,27 @@ export default async function PaginaDeFaturas() {
                   </div>
                 ) : null}
 
-                {precisaConferir ? (
+                {podeCorrigir ? (
+                  <details className="border-t border-line px-5 py-4" open={precisaConferir}>
+                    <summary className="cursor-pointer text-sm font-medium text-brand">
+                      {precisaConferir ? 'Corrigir leitura' : 'Conferir ou corrigir a leitura'}
+                    </summary>
+                    <div className="mt-3">
+                      <CorrigirLeitura fatura={fatura} />
+                    </div>
+                  </details>
+                ) : (
                   <div className="border-t border-line px-5 py-4">
-                    <p className="mb-3 text-sm font-medium text-ink">Corrigir leitura</p>
-                    <CorrigirLeitura fatura={fatura} />
+                    <p className="text-sm text-ink-muted">
+                      Esta fatura já virou despesa. Corrigir a leitura agora não mudaria o valor
+                      lançado — edite a despesa em{' '}
+                      <Link href="/despesas" className="text-brand underline underline-offset-2">
+                        Despesas
+                      </Link>
+                      .
+                    </p>
                   </div>
-                ) : null}
+                )}
 
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-4">
                   <a

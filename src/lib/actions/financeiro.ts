@@ -15,6 +15,73 @@ function tratar(erro: unknown): ResultadoDaAcao {
   return { erro: mensagemDeErro(erro) };
 }
 
+/**
+ * Cadastra ou corrige uma despesa.
+ *
+ * "Entra no rateio" e o campo que decide dinheiro: despesa rateavel vira cota
+ * de todo mundo, despesa que nao e fica so no caixa. O padrao vem da conta
+ * contabil escolhida, e a caixinha permite discordar dela num lancamento
+ * especifico — uma obra extraordinaria lancada em Manutencao, por exemplo.
+ */
+export async function salvarDespesa(
+  _anterior: ResultadoDaAcao,
+  dados: FormData,
+): Promise<ResultadoDaAcao> {
+  const id = texto(dados, 'despesaId');
+  const descricao = texto(dados, 'descricao');
+  const contaId = texto(dados, 'contaContabilId');
+  const valor = numero(dados, 'valor');
+  const vencimento = texto(dados, 'vencimento');
+
+  if (!descricao) return { erro: 'Informe a descrição da despesa.' };
+  if (!contaId) return { erro: 'Escolha a conta contábil.' };
+  if (valor === null || valor <= 0) return { erro: 'Informe o valor da despesa.' };
+  if (!vencimento) return { erro: 'Informe o vencimento.' };
+
+  const corpo = {
+    description: descricao,
+    ledgerAccountId: contaId,
+    amount: valor,
+    dueDate: vencimento,
+    competence: texto(dados, 'competencia') ?? undefined,
+    supplierId: texto(dados, 'fornecedorId'),
+    isApportionable: dados.get('rateavel') !== null,
+    documentNumber: texto(dados, 'documento'),
+    notes: texto(dados, 'observacoes'),
+  };
+
+  try {
+    const despesa = id
+      ? await api.expenses.update(id, corpo)
+      : await api.expenses.create(corpo);
+
+    revalidatePath('/despesas');
+    revalidatePath('/cobrancas');
+    revalidatePath('/painel');
+
+    return {
+      sucesso: `${despesa.description} ${id ? 'atualizada' : 'lançada'}: ${despesa.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.`,
+    };
+  } catch (erro) {
+    return tratar(erro);
+  }
+}
+
+/** Campo de texto opcional: vazio vira nulo em vez de string em branco. */
+function texto(dados: FormData, chave: string): string | null {
+  const bruto = String(dados.get(chave) ?? '').trim();
+  return bruto === '' ? null : bruto;
+}
+
+/** "1.234,56" vira 1234.56; vazio vira nulo. */
+function numero(dados: FormData, chave: string): number | null {
+  const bruto = String(dados.get(chave) ?? '').trim();
+  if (bruto === '') return null;
+
+  const valor = Number(bruto.replace(/\./g, '').replace(',', '.'));
+  return Number.isFinite(valor) ? valor : null;
+}
+
 export async function pagarDespesa(
   _anterior: ResultadoDaAcao,
   dados: FormData,

@@ -63,6 +63,29 @@ export async function sair(): Promise<void> {
   redirect('/entrar');
 }
 
+/**
+ * Reemite o token e regrava o cookie da sessão.
+ *
+ * A lista de condomínios que a barra lateral mostra vem do cookie, escrito no
+ * login. Criar um condomínio muda o banco e não o cookie — sem isto, o
+ * condomínio recém-criado só apareceria no próximo login ou quando o token
+ * vencesse, e o seletor continuaria escondido por achar que só existe um.
+ */
+export async function renovarSessao(): Promise<void> {
+  const sessao = await readSession();
+
+  if (!sessao) return;
+
+  try {
+    const auth = await api.auth.refresh(sessao.refreshToken);
+    await writeSession(sessionFromAuth(auth));
+  } catch {
+    // Renovar é conveniência: falhando, a sessão atual continua valendo e a
+    // lista só fica desatualizada até o próximo login. Derrubar quem acabou de
+    // criar um condomínio seria pior do que um seletor atrasado.
+  }
+}
+
 export async function trocarCondominio(condominiumId: string): Promise<void> {
   const auth = await api.auth.switchCondominium(condominiumId);
   await writeSession(sessionFromAuth(auth));

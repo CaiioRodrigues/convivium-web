@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { api } from '@/lib/api';
+import { renovarSessao } from '@/lib/actions/auth';
 import { mensagemDeErro } from '@/lib/actions/erros';
 
 export interface ResultadoDaPlataforma {
@@ -65,6 +66,9 @@ export async function criarCondominio(
       managerEmail: email,
     });
 
+    // O condomínio novo precisa entrar na lista da barra lateral agora, e não
+    // só no próximo login.
+    await renovarSessao();
     revalidatePath('/condominios');
 
     return {
@@ -81,6 +85,7 @@ export async function criarCondominio(
 export async function gerarDemonstracao(): Promise<ResultadoDaPlataforma> {
   try {
     await api.platform.seedDemo();
+    await renovarSessao();
     revalidatePath('/condominios');
 
     return { sucesso: 'Condomínio de demonstração gerado, com seis meses de histórico.' };

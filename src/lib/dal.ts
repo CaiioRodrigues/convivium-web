@@ -58,6 +58,24 @@ export async function requireAccountsAccess(): Promise<Session> {
   return session;
 }
 
+/**
+ * Exige quem administra a plataforma.
+ *
+ * Diferente das outras guardas, esta nao olha papel: papel e sempre dentro de
+ * um condominio, e administrar a plataforma acontece fora de qualquer um. Como
+ * sempre, quem barra de verdade e a API — aqui so evitamos renderizar uma tela
+ * que a pessoa nao pode usar.
+ */
+export async function requirePlatformAccess(): Promise<Session> {
+  const session = await requireSession();
+
+  if (!session.person.isSuperAdmin) {
+    redirect('/painel');
+  }
+
+  return session;
+}
+
 export async function requireFinanceAccess(): Promise<Session> {
   const session = await requireCondominium();
 

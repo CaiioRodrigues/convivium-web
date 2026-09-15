@@ -8,7 +8,7 @@ import { Button } from '@/components/ui';
 
 export default async function LayoutDoPortal({ children }: LayoutProps<'/'>) {
   const sessao = await requireCondominium();
-  const secoes = menuPara(sessao.activeRole);
+  const secoes = menuPara(sessao.activeRole, sessao.person.isSuperAdmin);
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">

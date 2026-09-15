@@ -369,6 +369,28 @@ export const api = {
       }),
   },
 
+  platform: {
+    list: () =>
+      apiFetch<import('@/lib/types').CondominiumSummary[]>('/api/condominios'),
+
+    create: (body: {
+      name: string;
+      city?: string | null;
+      state?: string | null;
+      cnpj?: string | null;
+      managerName: string;
+      managerEmail: string;
+    }) =>
+      apiFetch<import('@/lib/types').CreateCondominiumResult>('/api/condominios', {
+        method: 'POST',
+        json: body,
+      }),
+
+    /** Gera o condomínio de demonstração. Chamar duas vezes não duplica. */
+    seedDemo: () =>
+      apiFetch<void>('/api/condominios/demonstracao', { method: 'POST' }),
+  },
+
   suppliersAdmin: {
     create: (body: { name: string; document?: string | null; email?: string | null; phone?: string | null; notes?: string | null }) =>
       apiFetch<import('@/lib/types').Supplier>('/api/fornecedores', { method: 'POST', json: body }),

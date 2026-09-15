@@ -28,6 +28,7 @@ export function FolhaDeLeitura({ folha }: { folha: MeterReadingSheet }) {
   const [estado, acao, salvando] = useActionState(salvarLeituras, VAZIO);
 
   const [preco, setPreco] = useState(folha.unitPrice > 0 ? folha.unitPrice : 0);
+
   const [leituras, setLeituras] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       folha.lines.map((l) => [
@@ -37,10 +38,35 @@ export function FolhaDeLeitura({ folha }: { folha: MeterReadingSheet }) {
     ),
   );
 
+  /*
+   * A leitura anterior também é controlada, e não só `defaultValue`.
+   *
+   * Enquanto ela era apenas o valor do servidor, o consumo na tela saía de
+   * "atual menos o que já estava salvo" — e no primeiro mês, quando as duas
+   * colunas são digitadas na hora, o que estava salvo era zero. O APT 101
+   * aparecia consumindo 465,644 m³ em vez de 0,001. O valor gravado saía
+   * certo, porque a action lê o formulário, mas a tela mentia justamente no
+   * momento em que ela serve para conferir.
+   */
+  const [anteriores, setAnteriores] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      folha.lines.map((l) => [l.unitId, decimal(l.previousReading).replace(/\./g, '')]),
+    ),
+  );
+
+  const paraNumero = (texto: string | undefined) => {
+    const bruto = (texto ?? '').trim().replace(/\./g, '').replace(',', '.');
+    if (bruto === '') return null;
+
+    const valor = Number(bruto);
+    return Number.isFinite(valor) ? valor : null;
+  };
+
   const consumo = (linha: MeterReadingSheet['lines'][number]) => {
-    const digitado = Number((leituras[linha.unitId] ?? '').replace(',', '.'));
-    if (!Number.isFinite(digitado) || leituras[linha.unitId] === '') return null;
-    return Math.max(digitado - linha.previousReading, 0);
+    const atual = paraNumero(leituras[linha.unitId]);
+    if (atual === null) return null;
+
+    return Math.max(atual - (paraNumero(anteriores[linha.unitId]) ?? 0), 0);
   };
 
   const totalConsumo = folha.lines.reduce((soma, l) => soma + (consumo(l) ?? 0), 0);
@@ -103,7 +129,13 @@ export function FolhaDeLeitura({ folha }: { folha: MeterReadingSheet }) {
                   <Input
                     name={`anterior-${linha.unitId}`}
                     inputMode="decimal"
-                    defaultValue={decimal(linha.previousReading).replace(/\./g, '')}
+                    value={anteriores[linha.unitId] ?? ''}
+                    onChange={(evento) =>
+                      setAnteriores((antes) => ({
+                        ...antes,
+                        [linha.unitId]: evento.target.value,
+                      }))
+                    }
                     className="w-32 text-right"
                     aria-label={`Leitura anterior da unidade ${linha.unitIdentifier}`}
                   />
@@ -167,35 +199,43 @@ function ConversorDeCilindro({ aoCalcular }: { aoCalcular: (preco: number) => vo
   const [custo, setCusto] = useState('');
   const [metros, setMetros] = useState('20');
 
-  const converter = () => {
-    const valor = Number(custo.replace(/\./g, '').replace(',', '.'));
-    const volume = Number(metros.replace(',', '.'));
+  /*
+   * Converte assim que os dois campos fazem sentido, sem botão para clicar.
+   * Preencher "420,00" e "20" e mesmo assim ficar com o preço em branco é a
+   * forma mais fácil de fechar o mês inteiro com o valor errado.
+   */
+  const converter = (novoCusto: string, novosMetros: string) => {
+    const valor = Number(novoCusto.replace(/\./g, '').replace(',', '.'));
+    const volume = Number(novosMetros.replace(',', '.'));
 
-    if (Number.isFinite(valor) && Number.isFinite(volume) && volume > 0) {
+    if (novoCusto.trim() !== '' && Number.isFinite(valor) && volume > 0) {
       aoCalcular(Math.round((valor / volume) * 10000) / 10000);
     }
   };
 
   return (
-    <Field label="Preço do cilindro" hint="45 kg rendem cerca de 20 m³">
+    <Field label="Preço do cilindro" hint="45 kg rendem cerca de 20 m³ — o preço do m³ sai daqui">
       <div className="flex gap-2">
         <Input
           inputMode="decimal"
           placeholder="420,00"
           value={custo}
-          onChange={(evento) => setCusto(evento.target.value)}
+          onChange={(evento) => {
+            setCusto(evento.target.value);
+            converter(evento.target.value, metros);
+          }}
           aria-label="Quanto custou o cilindro"
         />
         <Input
           inputMode="decimal"
           value={metros}
-          onChange={(evento) => setMetros(evento.target.value)}
-          className="w-20"
+          onChange={(evento) => {
+            setMetros(evento.target.value);
+            converter(custo, evento.target.value);
+          }}
+          className="w-24"
           aria-label="Quantos metros cúbicos o cilindro rende"
         />
-        <Button type="button" variant="secondary" onClick={converter} className="shrink-0">
-          =
-        </Button>
       </div>
     </Field>
   );

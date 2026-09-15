@@ -163,7 +163,15 @@ export function Alert({
   children: ReactNode;
 }) {
   return (
-    <div className={cx('rounded-lg px-4 py-3 text-sm', TONES[tone])} role="status">
+    <div
+      className={cx('rounded-lg px-4 py-3 text-sm', TONES[tone])}
+      /*
+       * Erro e anunciado na hora; o resto espera o leitor de tela ficar ocioso.
+       * "Senha nao confere" ou "CNPJ invalido" chegando depois, quando a pessoa
+       * ja seguiu para o proximo campo, nao serve para nada.
+       */
+      role={tone === 'negative' ? 'alert' : 'status'}
+    >
       {title ? <p className="font-semibold">{title}</p> : null}
       <div className={title ? 'mt-0.5' : undefined}>{children}</div>
     </div>

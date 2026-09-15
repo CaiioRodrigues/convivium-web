@@ -18,8 +18,18 @@ export interface SecaoDeMenu {
  * caixa. É uma decisão de interface, não de segurança — quem barra o acesso
  * de verdade é a API, que lê o papel de dentro do JWT assinado.
  */
-export function menuPara(papel: MembershipRole | null): SecaoDeMenu[] {
+export function menuPara(
+  papel: MembershipRole | null,
+  superAdmin = false,
+): SecaoDeMenu[] {
   const secoes: SecaoDeMenu[] = [];
+
+  if (superAdmin) {
+    secoes.push({
+      titulo: 'Plataforma',
+      itens: [{ href: '/condominios', rotulo: 'Condomínios' }],
+    });
+  }
 
   if (canSeeAccounts(papel)) {
     secoes.push({

@@ -519,3 +519,29 @@ export interface InviteResult {
   expiresAt: string;
   inviteUrl: string;
 }
+
+// --- Plataforma: os condomínios em si ---
+
+export interface CondominiumSummary {
+  id: string;
+  name: string;
+  cnpj: string | null;
+  city: string;
+  isActive: boolean;
+  unitCount: number;
+  personCount: number;
+  managerName: string | null;
+  managerEmail: string | null;
+  /** Verdadeiro enquanto o síndico não escolheu a senha. */
+  managerPending: boolean;
+}
+
+export interface CreateCondominiumResult {
+  condominiumId: string;
+  name: string;
+  managerId: string;
+  managerEmail: string;
+  /** Vazio quando o síndico já tinha acesso de outro condomínio. */
+  inviteUrl: string;
+  inviteExpiresAt: string;
+}

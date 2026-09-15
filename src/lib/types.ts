@@ -399,3 +399,123 @@ export interface ProblemDetails {
   detail?: string;
   traceId?: string;
 }
+
+// --- Cadastro: condomínio ---
+
+export type PixKeyType = 'Cpf' | 'Cnpj' | 'Email' | 'Phone' | 'Random';
+
+export interface Address {
+  street: string;
+  number: string;
+  complement: string | null;
+  district: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
+export interface BillingSettings {
+  dueDay: number;
+  reserveFundRate: number;
+  lateFeeRate: number;
+  monthlyInterestRate: number;
+  defaultApportionmentMethod: ApportionmentMethod;
+}
+
+export interface Condominium {
+  id: string;
+  name: string;
+  legalName: string | null;
+  cnpj: string | null;
+  address: Address;
+  billing: BillingSettings;
+  pixKey: string | null;
+  pixKeyType: PixKeyType | null;
+  pixReceiverName: string | null;
+  pixReceiverCity: string | null;
+  isActive: boolean;
+  unitCount: number;
+  activeUnitCount: number;
+  idealFractionSum: number;
+}
+
+// --- Cadastro: unidades ---
+
+export type UnitKind = 'Apartment' | 'House' | 'Store' | 'Room' | 'ParkingSpot' | 'Storage';
+export type OccupancyRelation = 'Owner' | 'Tenant' | 'Occupant';
+
+export interface Block {
+  id: string;
+  name: string;
+  unitCount: number;
+}
+
+export interface UnitOccupant {
+  occupancyId: string;
+  personId: string;
+  name: string;
+  email: string | null;
+  relation: OccupancyRelation;
+  isBillingResponsible: boolean;
+}
+
+export interface Unit {
+  id: string;
+  blockId: string | null;
+  blockName: string | null;
+  identifier: string;
+  fullIdentifier: string;
+  floor: number | null;
+  kind: UnitKind;
+  areaM2: number | null;
+  idealFraction: number;
+  isActive: boolean;
+  occupants: UnitOccupant[];
+  openChargeCount: number;
+  outstandingAmount: number;
+}
+
+export interface UnitList {
+  units: Unit[];
+  blocks: Block[];
+  idealFractionSum: number;
+  idealFractionIsBalanced: boolean;
+  warnings: string[];
+}
+
+export interface RedistributeResult {
+  unitsAffected: number;
+  idealFractionSum: number;
+  units: Unit[];
+}
+
+// --- Cadastro: pessoas ---
+
+export interface PersonUnit {
+  occupancyId: string;
+  unitId: string;
+  unitIdentifier: string;
+  relation: OccupancyRelation;
+  isBillingResponsible: boolean;
+}
+
+export interface Person {
+  id: string;
+  name: string;
+  email: string | null;
+  cpf: string | null;
+  phone: string | null;
+  role: MembershipRole;
+  isActive: boolean;
+  canSignIn: boolean;
+  hasPendingInvite: boolean;
+  lastLoginAt: string | null;
+  units: PersonUnit[];
+}
+
+export interface InviteResult {
+  personId: string;
+  email: string;
+  expiresAt: string;
+  inviteUrl: string;
+}

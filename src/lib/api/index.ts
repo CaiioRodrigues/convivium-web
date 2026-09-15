@@ -4,6 +4,8 @@ import { apiFetch, apiFetchBlob } from '@/lib/api/core';
 import type {
   ApportionmentMethod,
   Address,
+  BankAccountKind,
+  BankAccountSummary,
   BillingSettings,
   Block,
   Condominium,
@@ -112,6 +114,37 @@ export const api = {
       apiFetch<CashStatement>(`/api/caixa/contas/${bankAccountId}/extrato`, {
         query: { from, to },
       }),
+
+    /**
+     * Cadastra uma conta. O `openingBalance` e o saldo que a conta ja tinha
+     * quando entrou no sistema — nao e lancamento, entao nao entra na receita
+     * do mes; so reposiciona o ponto de partida do saldo.
+     */
+    createBankAccount: (body: {
+      name: string;
+      kind: BankAccountKind;
+      bankCode?: string | null;
+      agency?: string | null;
+      accountNumber?: string | null;
+      openingBalance: number;
+      openingDate?: string | null;
+      isReserveFund: boolean;
+    }) => apiFetch<BankAccountSummary>('/api/caixa/contas', { method: 'POST', json: body }),
+
+    updateBankAccount: (
+      id: string,
+      body: {
+        name: string;
+        kind: BankAccountKind;
+        bankCode?: string | null;
+        agency?: string | null;
+        accountNumber?: string | null;
+        openingBalance: number;
+        openingDate?: string | null;
+        isReserveFund: boolean;
+        isActive: boolean;
+      },
+    ) => apiFetch<BankAccountSummary>(`/api/caixa/contas/${id}`, { method: 'PUT', json: body }),
 
     chartOfAccounts: (includeInactive = false) =>
       apiFetch<LedgerAccountNode[]>('/api/caixa/plano-de-contas', { query: { includeInactive } }),

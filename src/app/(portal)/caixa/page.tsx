@@ -15,6 +15,8 @@ import {
   Th,
 } from '@/components/ui';
 import { FiltroDeLancamentos } from '@/app/(portal)/caixa/filtro';
+import { ContaComFormulario } from '@/app/(portal)/caixa/formularios';
+import { canManageCondominium } from '@/lib/roles';
 
 export const metadata: Metadata = { title: 'Caixa' };
 
@@ -26,7 +28,8 @@ const TIPO_DE_CONTA: Record<string, string> = {
 };
 
 export default async function PaginaDoCaixa({ searchParams }: PageProps<'/caixa'>) {
-  await requireAccountsAccess();
+  const sessao = await requireAccountsAccess();
+  const podeGerirContas = canManageCondominium(sessao.activeRole);
 
   const filtros = await searchParams;
   const texto = (chave: string) =>
@@ -72,7 +75,21 @@ export default async function PaginaDoCaixa({ searchParams }: PageProps<'/caixa'
       </div>
 
       <Card className="mb-6">
-        <CardHeader title="Contas" description="O saldo vem sempre da soma dos lançamentos" />
+        <CardHeader
+          title="Contas"
+          description="O saldo é sempre o valor de abertura mais os lançamentos — nunca um número guardado"
+        />
+
+        {posicao.accounts.length === 0 ? (
+          <EmptyState
+            title="Nenhuma conta cadastrada"
+            description={
+              podeGerirContas
+                ? 'Cadastre abaixo a conta do condomínio, informando quanto já havia nela.'
+                : 'Peça ao síndico para cadastrar a conta do condomínio.'
+            }
+          />
+        ) : (
         <Table>
           <thead>
             <tr>
@@ -109,6 +126,26 @@ export default async function PaginaDoCaixa({ searchParams }: PageProps<'/caixa'
             ))}
           </tbody>
         </Table>
+        )}
+
+        {/*
+          Editar fica junto da tabela, e nao numa tela separada, porque o campo
+          que costuma precisar de correcao — o saldo ja existente — so faz
+          sentido olhando para o saldo atual da linha de cima.
+        */}
+        {podeGerirContas ? (
+          <div className="divide-y divide-line border-t border-line">
+            {posicao.accounts.map((conta) => (
+              <ContaComFormulario
+                key={conta.id}
+                conta={conta}
+                rotulo={`Editar ${conta.name}`}
+              />
+            ))}
+
+            <ContaComFormulario rotulo="Cadastrar nova conta" />
+          </div>
+        ) : null}
       </Card>
 
       <Card>

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useActionState } from 'react';
 
 import { entrar, type LoginState } from '@/lib/actions/auth';
@@ -35,6 +36,13 @@ export function FormularioDeEntrada({ destino }: { destino: string }) {
       <Button type="submit" disabled={enviando} className="w-full">
         {enviando ? 'Entrando…' : 'Entrar'}
       </Button>
+
+      <Link
+        href="/esqueci-senha"
+        className="block text-center text-sm text-ink-muted hover:text-ink hover:underline"
+      >
+        Esqueci minha senha
+      </Link>
     </form>
   );
 }

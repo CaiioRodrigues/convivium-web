@@ -282,6 +282,7 @@ export interface Charge {
   payerPersonId: string | null;
   payerName: string | null;
   payerEmail: string | null;
+  payerPhone: string | null;
   pixPayload: string | null;
   publicToken: string;
   daysLate: number;

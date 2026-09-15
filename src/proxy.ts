@@ -29,7 +29,13 @@ const RENEW_WHEN_LESS_THAN_MS = 60_000;
  * rota de API própria — sem ela na lista, o link do e-mail abriria a página e
  * depois jogaria o morador na tela de login ao tentar baixar o boleto.
  */
-const PUBLIC_PREFIXES = ['/entrar', '/boleto', '/api/boleto', '/definir-senha'];
+const PUBLIC_PREFIXES = [
+  '/entrar',
+  '/esqueci-senha',
+  '/boleto',
+  '/api/boleto',
+  '/definir-senha',
+];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some(
@@ -58,6 +64,8 @@ export default async function proxy(request: NextRequest): Promise<NextResponse>
   }
 
   // Ja autenticado abrindo a tela de entrada: manda para dentro do portal.
+  // Vale so para /entrar: quem tem sessao e abre /esqueci-senha quer justamente
+  // trocar a senha, e mandar para o painel tiraria a unica saida dele.
   if (pathname === '/entrar') {
     return NextResponse.redirect(new URL('/painel', request.url));
   }

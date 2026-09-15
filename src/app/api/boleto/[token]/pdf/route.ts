@@ -1,4 +1,4 @@
-import { api } from '@/lib/api';
+import { ApiError, api } from '@/lib/api';
 
 /**
  * Repassa o boleto em PDF vindo da API.
@@ -22,10 +22,19 @@ export async function GET(_pedido: Request, contexto: RouteContext<'/api/boleto/
         'Cache-Control': 'no-store',
       },
     });
-  } catch {
-    return new Response('Boleto não encontrado ou link expirado.', {
-      status: 404,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-    });
+  } catch (erro) {
+    // Link errado e API fora do ar não são a mesma coisa: mandar quem tem um
+    // link bom procurar outro, porque a API caiu, é o pior dos dois erros.
+    const foraDoAr = !(erro instanceof ApiError) || erro.status >= 500;
+
+    return new Response(
+      foraDoAr
+        ? 'Não foi possível gerar o boleto agora. Tente de novo em instantes.'
+        : 'Boleto não encontrado ou link expirado.',
+      {
+        status: foraDoAr ? 502 : 404,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      },
+    );
   }
 }

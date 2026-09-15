@@ -33,7 +33,8 @@ export default async function PaginaDeDefinirSenha({
         </Card>
 
         <p className="mt-5 text-center text-xs text-ink-subtle">
-          O link do convite vale 7 dias e só pode ser usado uma vez.
+          O link só pode ser usado uma vez: 7 dias no convite de primeiro acesso, 1 hora quando
+          você pediu para redefinir a senha.
         </p>
       </div>
     </main>

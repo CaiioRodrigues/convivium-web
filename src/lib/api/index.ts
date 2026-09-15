@@ -11,6 +11,8 @@ import type {
   Condominium,
   InviteResult,
   MembershipRole,
+  MeteredUtility,
+  MeterReadingSheet,
   OccupancyRelation,
   Person,
   PixKeyType,
@@ -442,6 +444,21 @@ export const api = {
     ) => apiFetch<import('@/lib/types').Supplier>(`/api/fornecedores/${id}`, { method: 'PUT', json: body }),
 
     deactivate: (id: string) => apiFetch<void>(`/api/fornecedores/${id}`, { method: 'DELETE' }),
+  },
+
+  metering: {
+    /** A folha da competência, com a leitura anterior já preenchida. */
+    sheet: (competence: string, utility: MeteredUtility = 'Gas') =>
+      apiFetch<MeterReadingSheet>('/api/medicoes', { query: { competence, utility } }),
+
+    /** Grava a folha inteira, do jeito que ela é preenchida. */
+    save: (body: {
+      competence: string;
+      utility: MeteredUtility;
+      unitPrice: number;
+      readOn?: string | null;
+      readings: Array<{ unitId: string; previousReading?: number | null; currentReading?: number | null }>;
+    }) => apiFetch<MeterReadingSheet>('/api/medicoes', { method: 'PUT', json: body }),
   },
 
   notifications: {

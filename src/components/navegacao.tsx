@@ -45,6 +45,9 @@ export function menuPara(
         { href: '/caixa', rotulo: 'Caixa' },
         { href: '/despesas', rotulo: 'Despesas' },
         { href: '/cobrancas', rotulo: 'Cobranças' },
+        // Antes de Cobrancas na leitura, depois na ordem: mede-se durante o
+        // mes, fecha-se o rateio no fim.
+        ...(canManageCondominium(papel) ? [{ href: '/medicoes', rotulo: 'Medições' }] : []),
       ],
     });
   }

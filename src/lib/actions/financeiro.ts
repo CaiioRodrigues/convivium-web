@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { ApiError, api } from '@/lib/api';
+import { api } from '@/lib/api';
+import { mensagemDeErro } from '@/lib/actions/erros';
 
 export interface ResultadoDaAcao {
   erro?: string;
@@ -11,16 +12,7 @@ export interface ResultadoDaAcao {
 
 /** Traduz a falha da API numa mensagem exibível, sem vazar erro interno. */
 function tratar(erro: unknown): ResultadoDaAcao {
-  if (erro instanceof ApiError) {
-    if (erro.isForbidden) {
-      return { erro: 'Seu papel no condomínio não permite esta ação.' };
-    }
-
-    // 422 é regra de negócio: a mensagem foi escrita para o usuário ler.
-    return { erro: erro.message };
-  }
-
-  return { erro: 'Não foi possível concluir a operação. Tente de novo.' };
+  return { erro: mensagemDeErro(erro) };
 }
 
 export async function pagarDespesa(

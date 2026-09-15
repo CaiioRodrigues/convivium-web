@@ -78,6 +78,19 @@ export const api = {
         auth: false,
       }),
 
+    /**
+     * Pede o link de redefinição de senha.
+     *
+     * Responde 202 tanto para e-mail cadastrado quanto para e-mail que não
+     * existe — a tela não tem como saber, e é de propósito.
+     */
+    forgotPassword: (email: string) =>
+      apiFetch<void>('/api/auth/esqueci-senha', {
+        method: 'POST',
+        json: { email },
+        auth: false,
+      }),
+
     switchCondominium: (condominiumId: string) =>
       apiFetch<AuthResult>(`/api/auth/switch/${condominiumId}`, { method: 'POST' }),
   },

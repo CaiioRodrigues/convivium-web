@@ -46,6 +46,49 @@ export async function entrar(_anterior: LoginState, dados: FormData): Promise<Lo
   redirect(destino.startsWith('/') && !destino.startsWith('//') ? destino : '/painel');
 }
 
+export interface EsqueciSenhaState {
+  erro?: string;
+  /** Vira true quando o pedido foi aceito, existindo o e-mail ou não. */
+  enviado?: boolean;
+  email?: string;
+}
+
+/**
+ * Pede o link de redefinição de senha.
+ *
+ * A mensagem de sucesso é a mesma para e-mail cadastrado e não cadastrado, de
+ * propósito: dizer "não encontramos esse e-mail" transformaria esta tela num
+ * jeito de descobrir quem mora no prédio. Quem digitou errado percebe pelo
+ * e-mail que não chega, que é o custo aceito.
+ *
+ * O 429 é exceção e aparece: ele fala do computador de quem pediu, não de
+ * quem está cadastrado, e sem ele a pessoa ficaria tentando à toa.
+ */
+export async function esqueciSenha(
+  _anterior: EsqueciSenhaState,
+  dados: FormData,
+): Promise<EsqueciSenhaState> {
+  const email = String(dados.get('email') ?? '').trim();
+
+  if (!email) {
+    return { erro: 'Informe o e-mail do seu cadastro.' };
+  }
+
+  try {
+    await api.auth.forgotPassword(email);
+  } catch (erro) {
+    if (erro instanceof ApiError && erro.status === 429) {
+      return { erro: mensagemDeErro(erro), email };
+    }
+
+    // Falha de rede ou erro da API: aqui vale mostrar, porque não revela nada
+    // sobre o cadastro e a pessoa precisa saber que não adianta esperar.
+    return { erro: mensagemDeErro(erro), email };
+  }
+
+  return { enviado: true, email };
+}
+
 export async function sair(): Promise<void> {
   const sessao = await readSession();
 

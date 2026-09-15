@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 
 import { ApiError, api } from '@/lib/api';
+import { mensagemDeErro } from '@/lib/actions/erros';
 import { clearSession, readSession, sessionFromAuth, writeSession } from '@/lib/session';
 
 export interface LoginState {
@@ -30,19 +31,13 @@ export async function entrar(_anterior: LoginState, dados: FormData): Promise<Lo
     const auth = await api.auth.login(email, senha);
     await writeSession(sessionFromAuth(auth));
   } catch (erro) {
-    if (erro instanceof ApiError) {
-      // A API responde 401 com mensagem genérica de propósito, para não
-      // revelar quais e-mails existem na base.
-      return {
-        erro: erro.isUnauthorized ? 'E-mail ou senha inválidos.' : erro.message,
-        email,
-      };
+    // A API responde 401 com mensagem genérica de propósito, para não revelar
+    // quais e-mails existem na base.
+    if (erro instanceof ApiError && erro.isUnauthorized) {
+      return { erro: 'E-mail ou senha inválidos.', email };
     }
 
-    return {
-      erro: 'Não foi possível falar com o servidor. Verifique se a API está no ar.',
-      email,
-    };
+    return { erro: mensagemDeErro(erro), email };
   }
 
   // Fora do try: redirect funciona lançando, e o catch acima engoliria.

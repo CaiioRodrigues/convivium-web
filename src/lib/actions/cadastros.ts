@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { ApiError, api } from '@/lib/api';
+import { api } from '@/lib/api';
+import { mensagemDeErro } from '@/lib/actions/erros';
 import type {
   ApportionmentMethod,
   MembershipRole,
@@ -45,16 +46,7 @@ function digitados(dados: FormData): Record<string, string> {
 
 function tratar(erro: unknown, dados?: FormData): ResultadoDoCadastro {
   const valores = dados ? { valores: digitados(dados) } : {};
-
-  if (erro instanceof ApiError) {
-    if (erro.isForbidden) {
-      return { erro: 'Seu papel no condomínio não permite esta ação.', ...valores };
-    }
-
-    return { erro: erro.message, ...valores };
-  }
-
-  return { erro: 'Não foi possível concluir a operação. Tente de novo.', ...valores };
+  return { erro: mensagemDeErro(erro), ...valores };
 }
 
 /** Campo de texto opcional: vazio vira nulo em vez de string em branco. */

@@ -343,6 +343,14 @@ export const api = {
     redistributeByArea: () =>
       apiFetch<RedistributeResult>('/api/unidades/recalcular-fracoes', { method: 'POST' }),
 
+    /**
+     * Escala as frações já cadastradas para somarem exatamente 1, mantendo a
+     * proporção entre elas. Não inventa proporção nenhuma: quem manda continua
+     * sendo a convenção.
+     */
+    normalizeFractions: () =>
+      apiFetch<RedistributeResult>('/api/unidades/ajustar-fracoes', { method: 'POST' }),
+
     createBlock: (name: string) =>
       apiFetch<Block>('/api/unidades/blocos', { method: 'POST', json: { name } }),
 

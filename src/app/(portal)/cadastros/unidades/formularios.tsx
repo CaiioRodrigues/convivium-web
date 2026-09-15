@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 
 import {
+  ajustarFracoes,
   desativarUnidade,
   recalcularFracoes,
   salvarUnidade,
@@ -100,13 +101,17 @@ export function FormularioDeUnidade({
         />
       </Field>
 
-      <Field label="Fração ideal (%)" hint="Ex.: 4,65">
+      <Field
+        label="Fração ideal"
+        hint="Como está na convenção: 0,1046 é 10,46% do condomínio"
+      >
         <Input
           name="fracao"
           inputMode="decimal"
+          placeholder="0,1046"
           defaultValue={
             digitado.fracao ??
-            (unidade ? (unidade.idealFraction * 100).toFixed(6).replace('.', ',') : '')
+            (unidade ? unidade.idealFraction.toFixed(6).replace('.', ',') : '')
           }
         />
       </Field>
@@ -150,6 +155,30 @@ export function BotaoRecalcularFracoes() {
       <form action={acao}>
         <Button type="submit" variant="secondary" disabled={recalculando}>
           {recalculando ? 'Recalculando…' : 'Recalcular frações pela área'}
+        </Button>
+      </form>
+
+      <RetornoDaAcao estado={estado} />
+    </div>
+  );
+}
+
+/**
+ * Escala as fracoes existentes para fecharem em 1, sem mexer na proporcao.
+ *
+ * Diferente do recalculo pela area, este nao decide quanto cada unidade pesa —
+ * quem decide continua sendo a convencao. Ele so corrige a escala, que e o que
+ * falta quando a convencao arredonda e nao fecha em 1, ou quando os numeros
+ * foram digitados em outra unidade.
+ */
+export function BotaoAjustarFracoes() {
+  const [estado, acao, ajustando] = useActionState(ajustarFracoes, VAZIO);
+
+  return (
+    <div>
+      <form action={acao}>
+        <Button type="submit" variant="secondary" disabled={ajustando}>
+          {ajustando ? 'Ajustando…' : 'Ajustar para fechar em 1'}
         </Button>
       </form>
 

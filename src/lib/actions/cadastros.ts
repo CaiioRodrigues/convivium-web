@@ -197,9 +197,11 @@ export async function salvarUnidade(
     floor: numero(dados, 'andar'),
     kind: (texto(dados, 'tipo') as UnitKind) ?? 'Apartment',
     areaM2: numero(dados, 'area'),
-    // A fração é digitada em porcentagem, que é como a convenção do
-    // condomínio costuma expressá-la.
-    idealFraction: numero(dados, 'fracao') === null ? null : percentual(dados, 'fracao'),
+    // Como está na convenção: 0,1046 significa 10,46% do condomínio. Já foi
+    // porcentagem aqui, e a diferença passava despercebida — quem copiava o
+    // número da convenção gravava uma fração cem vezes menor, e o rateio
+    // cobrava a menos de todo mundo sem nada parecer errado na tela.
+    idealFraction: numero(dados, 'fracao'),
     isActive: dados.get('ativa') !== null,
   };
 
@@ -228,6 +230,25 @@ export async function recalcularFracoes(
     return {
       sucesso:
         `${resultado.unitsAffected} unidade(s) recalculadas pela área privativa. ` +
+        `A soma das frações agora é ${resultado.idealFractionSum}.`,
+    };
+  } catch (erro) {
+    return tratar(erro);
+  }
+}
+
+export async function ajustarFracoes(
+  _anterior: ResultadoDoCadastro,
+  _dados: FormData,
+): Promise<ResultadoDoCadastro> {
+  try {
+    const resultado = await api.units.normalizeFractions();
+    revalidatePath('/cadastros/unidades');
+    revalidatePath('/cobrancas');
+
+    return {
+      sucesso:
+        `${resultado.unitsAffected} unidade(s) ajustadas mantendo a proporção entre elas. ` +
         `A soma das frações agora é ${resultado.idealFractionSum}.`,
     };
   } catch (erro) {

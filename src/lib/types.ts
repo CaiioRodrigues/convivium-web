@@ -545,3 +545,31 @@ export interface CreateCondominiumResult {
   inviteUrl: string;
   inviteExpiresAt: string;
 }
+
+// --- Medição individual ---
+
+export type MeteredUtility = 'Gas' | 'Water';
+
+export interface MeterReadingLine {
+  unitId: string;
+  unitIdentifier: string;
+  previousReading: number;
+  currentReading: number | null;
+  consumption: number;
+  amount: number;
+  /** A leitura anterior veio do fechamento passado, não foi digitada aqui. */
+  previousFromLastCompetence: boolean;
+}
+
+export interface MeterReadingSheet {
+  competence: string;
+  utility: MeteredUtility;
+  unitPrice: number;
+  readOn: string | null;
+  lines: MeterReadingLine[];
+  totalConsumption: number;
+  totalAmount: number;
+  pendingCount: number;
+  /** Falso depois que o ciclo fecha: os valores já foram para os boletos. */
+  isEditable: boolean;
+}

@@ -6,7 +6,9 @@ import { canManageCondominium } from '@/lib/roles';
 import { amount, count, money, percent } from '@/lib/format';
 import { CabecalhoDePagina } from '@/components/cabecalho-de-pagina';
 import { Alert, Badge, Card, CardHeader, EmptyState, Table, Td, Th } from '@/components/ui';
+import { LinkDeCancelar, LinkDeEdicao } from '@/components/link-de-edicao';
 import {
+  BotaoAjustarFracoes,
   BotaoDesativarUnidade,
   BotaoRecalcularFracoes,
   FormularioDeUnidade,
@@ -29,11 +31,19 @@ const RELACAO: Record<string, string> = {
   Occupant: 'morador',
 };
 
-export default async function PaginaDeUnidades() {
+export default async function PaginaDeUnidades({
+  searchParams,
+}: PageProps<'/cadastros/unidades'>) {
   const sessao = await requireAccountsAccess();
   const podeEditar = canManageCondominium(sessao.activeRole);
 
+  const filtros = await searchParams;
   const lista = await api.units.list();
+
+  const emEdicao =
+    typeof filtros.editar === 'string'
+      ? (lista.units.find((u) => u.id === filtros.editar) ?? null)
+      : null;
 
   return (
     <>
@@ -65,7 +75,12 @@ export default async function PaginaDeUnidades() {
             </p>
           </div>
 
-          {podeEditar ? <BotaoRecalcularFracoes /> : null}
+          {podeEditar ? (
+            <div className="flex flex-wrap items-start gap-2">
+              <BotaoAjustarFracoes />
+              <BotaoRecalcularFracoes />
+            </div>
+          ) : null}
         </div>
 
         {lista.warnings.length > 0 ? (
@@ -82,13 +97,27 @@ export default async function PaginaDeUnidades() {
       </Card>
 
       {podeEditar ? (
-        <Card className="mb-6">
+        <Card className="mb-6" id="formulario">
           <CardHeader
-            title="Nova unidade"
-            description="O bloco pode ser criado junto, sem cadastro em dois passos"
+            title={emEdicao ? `Editar ${emEdicao.fullIdentifier}` : 'Nova unidade'}
+            description={
+              emEdicao
+                ? 'A unidade continua a mesma no rateio e nas cobranças já emitidas'
+                : 'O bloco pode ser criado junto, sem cadastro em dois passos'
+            }
+            action={emEdicao ? <LinkDeCancelar href="/cadastros/unidades" /> : undefined}
           />
           <div className="px-5 py-4">
-            <FormularioDeUnidade blocos={lista.blocks} />
+            {/*
+              O `key` remonta o formulário ao trocar de unidade. Sem ele, ir de
+              uma linha para outra manteria os campos da anterior — e salvar
+              gravaria os dados errados na unidade certa.
+            */}
+            <FormularioDeUnidade
+              key={emEdicao?.id ?? 'nova'}
+              blocos={lista.blocks}
+              unidade={emEdicao ?? undefined}
+            />
           </div>
         </Card>
       ) : null}
@@ -171,9 +200,15 @@ export default async function PaginaDeUnidades() {
                   </Td>
                   {podeEditar ? (
                     <Td numeric>
-                      {unidade.isActive ? (
-                        <BotaoDesativarUnidade unidadeId={unidade.id} />
-                      ) : null}
+                      <div className="flex items-center justify-end gap-3">
+                        <LinkDeEdicao
+                          href={`/cadastros/unidades?editar=${unidade.id}#formulario`}
+                          rotulo={`Editar ${unidade.fullIdentifier}`}
+                        />
+                        {unidade.isActive ? (
+                          <BotaoDesativarUnidade unidadeId={unidade.id} />
+                        ) : null}
+                      </div>
                     </Td>
                   ) : null}
                 </tr>

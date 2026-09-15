@@ -6,6 +6,7 @@ import { canManageCondominium } from '@/lib/roles';
 import { count, dateTime, document as formatarDocumento } from '@/lib/format';
 import { ROLE_LABEL } from '@/lib/roles';
 import { CabecalhoDePagina } from '@/components/cabecalho-de-pagina';
+import { LinkDeCancelar, LinkDeEdicao } from '@/components/link-de-edicao';
 import { Alert, Badge, Card, CardHeader, EmptyState, Table, Td, Th } from '@/components/ui';
 import {
   BotaoDeConvite,
@@ -24,14 +25,23 @@ const RELACAO: Record<string, string> = {
   Occupant: 'morador',
 };
 
-export default async function PaginaDePessoas() {
+export default async function PaginaDePessoas({
+  searchParams,
+}: PageProps<'/cadastros/pessoas'>) {
   const sessao = await requireAccountsAccess();
   const podeEditar = canManageCondominium(sessao.activeRole);
+
+  const filtros = await searchParams;
 
   const [pessoas, unidades] = await Promise.all([
     api.people.list({ IncludeInactive: true }),
     api.units.list(false),
   ]);
+
+  const emEdicao =
+    typeof filtros.editar === 'string'
+      ? (pessoas.find((p) => p.id === filtros.editar) ?? null)
+      : null;
 
   const semEmail = pessoas.filter((p) => p.isActive && !p.email);
   const semAcesso = pessoas.filter((p) => p.isActive && p.email && !p.canSignIn);
@@ -62,13 +72,24 @@ export default async function PaginaDePessoas() {
       ) : null}
 
       {podeEditar ? (
-        <Card className="mb-6">
+        <Card className="mb-6" id="formulario">
           <CardHeader
-            title="Nova pessoa"
-            description="Quem já existe em outro condomínio é reaproveitada, mantendo o login"
+            title={emEdicao ? `Editar ${emEdicao.name}` : 'Nova pessoa'}
+            description={
+              emEdicao
+                ? 'Papel e unidades têm controle próprio na linha da pessoa, mais abaixo'
+                : 'Quem já existe em outro condomínio é reaproveitada, mantendo o login'
+            }
+            action={emEdicao ? <LinkDeCancelar href="/cadastros/pessoas" /> : undefined}
           />
           <div className="px-5 py-4">
-            <FormularioDePessoa unidades={unidades.units} />
+            {/* O `key` remonta o formulário ao trocar de pessoa; sem ele os
+                campos guardariam os dados da anterior. */}
+            <FormularioDePessoa
+              key={emEdicao?.id ?? 'nova'}
+              unidades={unidades.units}
+              pessoa={emEdicao ?? undefined}
+            />
           </div>
         </Card>
       ) : null}
@@ -188,7 +209,13 @@ export default async function PaginaDePessoas() {
 
                   {podeEditar ? (
                     <Td numeric>
+                      <div className="flex items-center justify-end gap-3">
+                        <LinkDeEdicao
+                          href={`/cadastros/pessoas?editar=${pessoa.id}#formulario`}
+                          rotulo={`Editar ${pessoa.name}`}
+                        />
                       {pessoa.isActive ? <BotaoDesativarPessoa pessoaId={pessoa.id} /> : null}
+                      </div>
                     </Td>
                   ) : null}
                 </tr>

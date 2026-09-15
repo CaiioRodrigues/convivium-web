@@ -5,6 +5,7 @@ import { requireAccountsAccess } from '@/lib/dal';
 import { canManageFinance } from '@/lib/roles';
 import { count, document as formatarDocumento } from '@/lib/format';
 import { CabecalhoDePagina } from '@/components/cabecalho-de-pagina';
+import { LinkDeCancelar, LinkDeEdicao } from '@/components/link-de-edicao';
 import { Card, CardHeader, EmptyState, Table, Td, Th } from '@/components/ui';
 import {
   BotaoDesativarFornecedor,
@@ -13,11 +14,20 @@ import {
 
 export const metadata: Metadata = { title: 'Fornecedores' };
 
-export default async function PaginaDeFornecedores() {
+export default async function PaginaDeFornecedores({
+  searchParams,
+}: PageProps<'/cadastros/fornecedores'>) {
   const sessao = await requireAccountsAccess();
   const podeEditar = canManageFinance(sessao.activeRole);
 
+  const filtros = await searchParams;
+
   const fornecedores = await api.suppliers.list();
+
+  const emEdicao =
+    typeof filtros.editar === 'string'
+      ? (fornecedores.find((f) => f.id === filtros.editar) ?? null)
+      : null;
 
   return (
     <>
@@ -27,10 +37,18 @@ export default async function PaginaDeFornecedores() {
       />
 
       {podeEditar ? (
-        <Card className="mb-6">
-          <CardHeader title="Novo fornecedor" />
+        <Card className="mb-6" id="formulario">
+          <CardHeader
+            title={emEdicao ? `Editar ${emEdicao.name}` : 'Novo fornecedor'}
+            action={emEdicao ? <LinkDeCancelar href="/cadastros/fornecedores" /> : undefined}
+          />
           <div className="px-5 py-4">
-            <FormularioDeFornecedor />
+            {/* O `key` remonta o formulário ao trocar de fornecedor; sem ele os
+                campos guardariam os dados do anterior. */}
+            <FormularioDeFornecedor
+              key={emEdicao?.id ?? 'novo'}
+              fornecedor={emEdicao ?? undefined}
+            />
           </div>
         </Card>
       ) : null}
@@ -72,7 +90,13 @@ export default async function PaginaDeFornecedores() {
                   </Td>
                   {podeEditar ? (
                     <Td numeric>
-                      <BotaoDesativarFornecedor fornecedorId={fornecedor.id} />
+                      <div className="flex items-center justify-end gap-3">
+                        <LinkDeEdicao
+                          href={`/cadastros/fornecedores?editar=${fornecedor.id}#formulario`}
+                          rotulo={`Editar ${fornecedor.name}`}
+                        />
+                        <BotaoDesativarFornecedor fornecedorId={fornecedor.id} />
+                      </div>
                     </Td>
                   ) : null}
                 </tr>

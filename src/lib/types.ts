@@ -223,6 +223,7 @@ export interface Supplier {
   phone: string | null;
   isActive: boolean;
   expenseCount: number;
+  notes: string | null;
 }
 
 // --- Cobrancas ---

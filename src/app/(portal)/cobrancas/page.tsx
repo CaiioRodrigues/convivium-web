@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 import { api } from '@/lib/api';
 import { requireAccountsAccess } from '@/lib/dal';
@@ -129,7 +130,17 @@ export default async function PaginaDeCobrancas() {
                 return (
                   <tr key={ciclo.id}>
                     <Td className="font-medium whitespace-nowrap">
-                      {competenceLabel(ciclo.competence)}
+                      {/* O ciclo em rascunho ainda não gerou boleto nenhum. */}
+                      {ciclo.status === 'Draft' ? (
+                        competenceLabel(ciclo.competence)
+                      ) : (
+                        <Link
+                          href={`/cobrancas/${ciclo.id}`}
+                          className="text-brand hover:underline"
+                        >
+                          {competenceLabel(ciclo.competence)}
+                        </Link>
+                      )}
                     </Td>
                     <Td className="whitespace-nowrap text-ink-muted">{date(ciclo.dueDate)}</Td>
                     <Td>

@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { mensagemDeErro } from '@/lib/actions/erros';
 import type {
   ApportionmentMethod,
+  BankAccountKind,
   MembershipRole,
   OccupancyRelation,
   PixKeyType,
@@ -70,6 +71,61 @@ function numero(dados: FormData, chave: string): number | null {
 /** Percentual digitado como "2" ou "2,5" vira a fração 0.02 / 0.025. */
 function percentual(dados: FormData, chave: string): number {
   return (numero(dados, chave) ?? 0) / 100;
+}
+
+// --- Contas do caixa ---
+
+/**
+ * Cadastra ou corrige uma conta bancária.
+ *
+ * O saldo de abertura é o que o condomínio já tinha quando entrou no sistema.
+ * Ele não é um lançamento: não aparece no extrato nem entra na receita do mês —
+ * só desloca o ponto de partida do saldo. Lançar os R$ 20.000 que já existiam
+ * como uma entrada contaminaria o resultado do mês com dinheiro antigo.
+ */
+export async function salvarConta(
+  _anterior: ResultadoDoCadastro,
+  dados: FormData,
+): Promise<ResultadoDoCadastro> {
+  const id = texto(dados, 'contaId');
+  const nome = texto(dados, 'nome');
+
+  if (!nome) {
+    return { erro: 'Informe o nome da conta.', valores: digitados(dados) };
+  }
+
+  const corpo = {
+    name: nome,
+    kind: (texto(dados, 'tipo') as BankAccountKind) ?? 'Checking',
+    bankCode: texto(dados, 'banco'),
+    agency: texto(dados, 'agencia'),
+    accountNumber: texto(dados, 'numero'),
+    openingBalance: numero(dados, 'saldoInicial') ?? 0,
+    openingDate: texto(dados, 'dataInicial'),
+    isReserveFund: dados.get('fundoDeReserva') !== null,
+  };
+
+  try {
+    const conta = id
+      ? await api.cash.updateBankAccount(id, { ...corpo, isActive: dados.get('ativa') !== null })
+      : await api.cash.createBankAccount(corpo);
+
+    revalidatePath('/caixa');
+    revalidatePath('/painel');
+
+    return {
+      sucesso: id
+        ? `Conta "${conta.name}" atualizada. Saldo atual: ${moeda(conta.currentBalance)}.`
+        : `Conta "${conta.name}" criada com saldo de ${moeda(conta.currentBalance)}.`,
+    };
+  } catch (erro) {
+    return tratar(erro, dados);
+  }
+}
+
+/** Formata o saldo na mensagem de retorno, sem depender do componente. */
+function moeda(valor: number): string {
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 // --- Condomínio ---

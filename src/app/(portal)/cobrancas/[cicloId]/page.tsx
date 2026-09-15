@@ -8,6 +8,7 @@ import { requireAccountsAccess } from '@/lib/dal';
 import { competenceLabel, date, money } from '@/lib/format';
 import { STATUS_DA_COBRANCA, STATUS_DO_CICLO } from '@/lib/rotulos';
 import { linkDeWhatsApp, mensagemDoBoleto } from '@/lib/whatsapp';
+import { EnvioComImagem } from '@/app/(portal)/cobrancas/[cicloId]/envio';
 import { CabecalhoDePagina } from '@/components/cabecalho-de-pagina';
 import { Alert, Badge, Card, CardHeader, EmptyState, Table, Td, Th } from '@/components/ui';
 
@@ -74,7 +75,7 @@ export default async function PaginaDosBoletosDoCiclo({
         <Card>
           <CardHeader
             title="Envio por unidade"
-            description="Abre o WhatsApp com a mensagem e o link prontos. Você confere e envia."
+            description="Abre o WhatsApp com a imagem do boleto e a mensagem prontas. Você confere e envia."
           />
 
           {semTelefone > 0 ? (
@@ -105,18 +106,17 @@ export default async function PaginaDosBoletosDoCiclo({
                 const estado = STATUS_DA_COBRANCA[cobranca.status];
                 const linkDoBoleto = `${origem}/boleto/${cobranca.publicToken}`;
 
-                const whatsapp = linkDeWhatsApp(
-                  cobranca.payerPhone,
-                  mensagemDoBoleto({
-                    condominio: condominio.name,
-                    unidade: cobranca.unitIdentifier,
-                    competencia: competenceLabel(cobranca.competence),
-                    vencimento: date(cobranca.dueDate),
-                    valor: money(cobranca.totalWithLateCharges),
-                    morador: cobranca.payerName,
-                    link: linkDoBoleto,
-                  }),
-                );
+                const mensagem = mensagemDoBoleto({
+                  condominio: condominio.name,
+                  unidade: cobranca.unitIdentifier,
+                  competencia: competenceLabel(cobranca.competence),
+                  vencimento: date(cobranca.dueDate),
+                  valor: money(cobranca.totalWithLateCharges),
+                  morador: cobranca.payerName,
+                  link: linkDoBoleto,
+                });
+
+                const whatsapp = linkDeWhatsApp(cobranca.payerPhone, mensagem);
 
                 return (
                   <tr key={cobranca.id}>
@@ -140,14 +140,12 @@ export default async function PaginaDosBoletosDoCiclo({
                         </a>
 
                         {whatsapp ? (
-                          <a
-                            href={whatsapp}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-sm font-medium text-brand hover:underline"
-                          >
-                            WhatsApp
-                          </a>
+                          <EnvioComImagem
+                            urlDaImagem={`/api/cobrancas/${cobranca.id}/imagem`}
+                            linkDoWhatsApp={whatsapp}
+                            mensagem={mensagem}
+                            nomeDoArquivo={`boleto-${cobranca.unitIdentifier.replace(/\W+/g, '-')}.png`}
+                          />
                         ) : (
                           <span
                             className="text-sm text-ink-subtle"

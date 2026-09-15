@@ -280,6 +280,11 @@ export const api = {
     pdf: (id: string) => apiFetchBlob(`/api/cobrancas/${id}/pdf`),
 
     publicPdf: (token: string) => apiFetchBlob(`/api/boleto/${token}/pdf`, { auth: false }),
+
+    /** O mesmo boleto em PNG, que e o formato que o WhatsApp abre na conversa. */
+    image: (id: string) => apiFetchBlob(`/api/cobrancas/${id}/imagem`),
+
+    publicImage: (token: string) => apiFetchBlob(`/api/boleto/${token}/imagem`, { auth: false }),
   },
 
   utilityBills: {

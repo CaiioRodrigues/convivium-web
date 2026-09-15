@@ -35,7 +35,11 @@ export default async function PaginaDoBoletoPublico({
         <p className="mt-1 text-sm text-ink-muted">Aviso de cobrança condominial</p>
       </div>
 
-      <CartaoDeCobranca cobranca={cobranca} urlDoPdf={`/api/boleto/${token}/pdf`} />
+      <CartaoDeCobranca
+        cobranca={cobranca}
+        urlDoPdf={`/api/boleto/${token}/pdf`}
+        urlDaImagem={`/api/boleto/${token}/imagem`}
+      />
 
       <p className="mt-6 text-center text-xs text-ink-subtle">
         Guarde este link: ele dá acesso apenas a esta cobrança.

@@ -29,26 +29,6 @@ export default async function PaginaDeEntrada({ searchParams }: PageProps<'/entr
         <Card className="p-6">
           <FormularioDeEntrada destino={destino} />
         </Card>
-
-        {process.env.NODE_ENV !== 'production' ? (
-          <div className="mt-5 rounded-lg border border-line bg-surface-muted px-4 py-3 text-xs text-ink-muted">
-            <p className="font-medium text-ink">Acessos de demonstração</p>
-            <p className="mt-1.5">
-              Senha para todos: <code className="font-mono">Convivium@123</code>
-            </p>
-            <ul className="mt-1.5 space-y-0.5">
-              <li>
-                <code className="font-mono">sindico@convivium.local</code> — síndico
-              </li>
-              <li>
-                <code className="font-mono">conselho@convivium.local</code> — conselho
-              </li>
-              <li>
-                <code className="font-mono">morador@convivium.local</code> — morador
-              </li>
-            </ul>
-          </div>
-        ) : null}
       </div>
     </main>
   );

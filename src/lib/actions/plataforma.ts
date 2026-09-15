@@ -2,7 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { ApiError, api } from '@/lib/api';
+import { api } from '@/lib/api';
+import { renovarSessao } from '@/lib/actions/auth';
+import { mensagemDeErro } from '@/lib/actions/erros';
 
 export interface ResultadoDaPlataforma {
   erro?: string;
@@ -29,16 +31,7 @@ function digitados(dados: FormData): Record<string, string> {
 
 function tratar(erro: unknown, dados?: FormData): ResultadoDaPlataforma {
   const valores = dados ? { valores: digitados(dados) } : {};
-
-  if (erro instanceof ApiError) {
-    if (erro.isForbidden) {
-      return { erro: 'Só quem administra a plataforma pode fazer isso.', ...valores };
-    }
-
-    return { erro: erro.message, ...valores };
-  }
-
-  return { erro: 'Não foi possível concluir a operação. Tente de novo.', ...valores };
+  return { erro: mensagemDeErro(erro), ...valores };
 }
 
 function texto(dados: FormData, chave: string): string | null {
@@ -73,6 +66,9 @@ export async function criarCondominio(
       managerEmail: email,
     });
 
+    // O condomínio novo precisa entrar na lista da barra lateral agora, e não
+    // só no próximo login.
+    await renovarSessao();
     revalidatePath('/condominios');
 
     return {
@@ -89,6 +85,7 @@ export async function criarCondominio(
 export async function gerarDemonstracao(): Promise<ResultadoDaPlataforma> {
   try {
     await api.platform.seedDemo();
+    await renovarSessao();
     revalidatePath('/condominios');
 
     return { sucesso: 'Condomínio de demonstração gerado, com seis meses de histórico.' };

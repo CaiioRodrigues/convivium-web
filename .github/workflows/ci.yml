@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Um push novo cancela a execucao anterior do mesmo PR: nao adianta esperar o
+# resultado de um commit que ja foi substituido.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Lint, tipos e build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          # Guarda o store do pnpm entre execucoes; a versao vem do
+          # packageManager do package.json, via action-setup acima.
+          cache: pnpm
+
+      - name: Instalar dependencias
+        # --frozen-lockfile falha se o package.json e o lockfile divergirem,
+        # em vez de resolver versoes novas sem ninguem pedir.
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Tipos
+        # "next typegen" antes do tsc: os tipos de PageProps/LayoutProps das
+        # rotas sao gerados, e sem eles o typecheck acusa erro que nao existe.
+        run: pnpm typecheck
+
+      - name: Build
+        env:
+          # O build so precisa que a variavel exista; nenhuma chamada a API
+          # acontece em tempo de build.
+          API_BASE_URL: http://localhost:5080
+        run: pnpm build

@@ -10,11 +10,23 @@ próprios boletos e paga por PIX.
 
 ## Como rodar
 
+**Pré-requisitos:** [Node.js 22+](https://nodejs.org) e pnpm.
+
+O pnpm não vem instalado com o Node, mas o Corepack — que vem — sabe buscar a
+versão exata que este projeto fixa no `package.json`:
+
+```bash
+corepack enable
+```
+
+Se preferir instalar por fora, `npm install -g pnpm` também serve. No Windows,
+`corepack enable` pode pedir um terminal de administrador.
+
 A API precisa estar no ar primeiro:
 
 ```bash
 # No repositório convivium-api
-docker compose up -d
+docker compose up -d                         # ou um Postgres proprio, veja o README de la
 dotnet run --project src/Convivium.Api      # http://localhost:5080
 ```
 

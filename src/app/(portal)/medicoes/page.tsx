@@ -6,7 +6,7 @@ import { competenceLabel, currentCompetence, money } from '@/lib/format';
 import { CabecalhoDePagina } from '@/components/cabecalho-de-pagina';
 import { Alert, Card, CardHeader, EmptyState, Stat } from '@/components/ui';
 import { FolhaDeLeitura } from '@/app/(portal)/medicoes/formulario';
-import { SeletorDeCompetencia } from '@/app/(portal)/medicoes/seletor';
+import { SeletorDeCompetencia } from '@/components/seletor-de-competencia';
 
 export const metadata: Metadata = { title: 'Medições' };
 
@@ -32,7 +32,7 @@ export default async function PaginaDeMedicoes({ searchParams }: PageProps<'/med
       <CabecalhoDePagina
         titulo="Medições de gás"
         descricao={`Consumo individual de ${competenceLabel(folha.competence)} — cobrado por fora do rateio, de quem gastou`}
-        acao={<SeletorDeCompetencia competencia={competencia} />}
+        acao={<SeletorDeCompetencia competencia={competencia} destino="/medicoes" />}
       />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">

@@ -55,7 +55,19 @@ export default async function PaginaDeCobrancas() {
             description="Simulação com os números de hoje. Nada aqui está gravado."
           />
 
-          <div className="grid gap-4 px-5 py-4 sm:grid-cols-4">
+          {/*
+            O consumo individual só aparece quando existe: prédio sem medidor
+            não precisa de um cartão zerado. Quando aparece, ele é o que faz os
+            números fecharem — sem ele a tela mostrava despesas mais fundo de
+            reserva e um total maior, sem dizer de onde vinha a diferença.
+          */}
+          <div
+            className={
+              previa.meteredTotal > 0
+                ? 'grid grid-cols-2 gap-4 px-5 py-4 sm:grid-cols-3 lg:grid-cols-5'
+                : 'grid gap-4 px-5 py-4 sm:grid-cols-4'
+            }
+          >
             <div>
               <p className="text-xs tracking-wide text-ink-subtle uppercase">Despesas rateáveis</p>
               <p className="tabular mt-1 text-lg font-semibold text-ink">
@@ -68,21 +80,49 @@ export default async function PaginaDeCobrancas() {
               <p className="tabular mt-1 text-lg font-semibold text-ink">
                 {money(previa.reserveFundTotal)}
               </p>
-              <p className="text-xs text-ink-subtle">{percent(previa.reserveFundRate, 0)} da cota</p>
+              <p className="text-xs text-ink-subtle">
+                {percent(previa.reserveFundRate, 0)} das despesas
+              </p>
             </div>
+
+            {previa.meteredTotal > 0 ? (
+              <div>
+                <p className="text-xs tracking-wide text-ink-subtle uppercase">
+                  Consumo individual
+                </p>
+                <p className="tabular mt-1 text-lg font-semibold text-ink">
+                  {money(previa.meteredTotal)}
+                </p>
+                <p className="text-xs text-ink-subtle">medido, fora do rateio</p>
+              </div>
+            ) : null}
+
             <div>
               <p className="text-xs tracking-wide text-ink-subtle uppercase">Total a cobrar</p>
               <p className="tabular mt-1 text-lg font-semibold text-brand">
                 {money(previa.chargedTotal)}
               </p>
-              <p className="text-xs text-ink-subtle">{previa.unitCount} unidades</p>
+              <p className="text-xs text-ink-subtle">
+                {previa.meteredTotal > 0
+                  ? 'soma dos três'
+                  : `${count(previa.unitCount)} unidades`}
+              </p>
             </div>
             <div>
               <p className="text-xs tracking-wide text-ink-subtle uppercase">Cota média</p>
               <p className="tabular mt-1 text-lg font-semibold text-ink">
                 {money(previa.unitCount > 0 ? previa.chargedTotal / previa.unitCount : 0)}
               </p>
-              <p className="text-xs text-ink-subtle">por unidade</p>
+              {/*
+                Com gás no meio, "cota média" não é o que ninguém paga: o rateio
+                é igual para todos, o consumo não. Dizer "média" sem essa
+                ressalva faz o síndico repetir o número como se fosse o boleto.
+              */}
+              <p className="text-xs text-ink-subtle">
+                {previa.meteredTotal > 0
+                  ? `entre ${count(previa.unitCount)} unidades, o consumo varia`
+                  : 'por unidade'}
+              </p>
             </div>
           </div>
 

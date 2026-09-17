@@ -75,6 +75,16 @@ pnpm lint        # eslint
 
 ---
 
+## Colocar no ar
+
+O `Dockerfile` daqui constrói a imagem do portal em modo `standalone`: o build
+separa o servidor e só as dependências que o código importa de verdade — 43 MB
+em vez dos quase 500 MB do `node_modules`.
+
+A pilha completa (banco, API, portal e proxy com HTTPS) vive no repositório da
+API, em `convivium-api/deploy/`. Os dois repositórios precisam estar lado a
+lado, porque o `docker compose` de lá constrói a imagem daqui.
+
 ## Telas
 
 | Rota | Quem acessa | O que faz |

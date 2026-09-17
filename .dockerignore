@@ -1,0 +1,14 @@
+# O build roda dentro do container: trazer o node_modules e o .next da
+# maquina de origem so atrasa o envio do contexto e arrisca misturar
+# binario compilado para outro sistema.
+node_modules/
+.next/
+.git/
+.github/
+.vscode/
+.idea/
+*.md
+!README.md
+.env*.local
+Dockerfile
+.dockerignore

@@ -309,6 +309,10 @@ export interface ApportionmentPreviewLine {
   payerPersonId: string | null;
   payerName: string | null;
   payerEmail: string | null;
+  /** Consumo medido da unidade, em reais. Não passa pelo rateio. */
+  metered: number;
+  /** O mesmo consumo em metros cúbicos. */
+  meteredConsumption: number;
 }
 
 export interface ApportionmentPreview {
@@ -323,6 +327,8 @@ export interface ApportionmentPreview {
   expenses: ExpenseBreakdownLine[];
   units: ApportionmentPreviewLine[];
   warnings: string[];
+  /** Soma do consumo individual, que entra nos boletos fora do rateio. */
+  meteredTotal: number;
 }
 
 export interface DelinquentUnit {

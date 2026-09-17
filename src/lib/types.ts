@@ -581,3 +581,68 @@ export interface MeterReadingSheet {
   /** Falso depois que o ciclo fecha: os valores já foram para os boletos. */
   isEditable: boolean;
 }
+
+// --- Prestação de contas ---
+
+/** Quanto entrou ou saiu por conta do plano de contas. */
+export interface StatementLine {
+  code: string;
+  name: string;
+  amount: number;
+  count: number;
+  /** Fatia do total de receitas ou de despesas, de 0 a 1. */
+  share: number;
+}
+
+export interface StatementAccountBalance {
+  name: string;
+  isReserveFund: boolean;
+  opening: number;
+  in: number;
+  out: number;
+  closing: number;
+}
+
+export interface StatementEntry {
+  date: string;
+  description: string;
+  accountCode: string;
+  accountName: string;
+  bankAccountName: string;
+  documentNumber: string | null;
+  isIncome: boolean;
+  amount: number;
+  reconciled: boolean;
+}
+
+export interface DelinquencySummary {
+  units: number;
+  outstanding: number;
+  lateCharges: number;
+}
+
+/**
+ * Balancete de um mês, em regime de caixa.
+ *
+ * Pela data em que o dinheiro se moveu, e não pela competência contábil do
+ * lançamento: é o que faz a conta fechar contra o extrato bancário.
+ */
+export interface MonthlyStatement {
+  competence: string;
+  from: string;
+  to: string;
+  condominiumName: string;
+  cnpj: string | null;
+  address: string;
+  openingBalance: number;
+  totalIncome: number;
+  totalExpense: number;
+  result: number;
+  closingBalance: number;
+  income: StatementLine[];
+  expenses: StatementLine[];
+  accounts: StatementAccountBalance[];
+  entries: StatementEntry[];
+  delinquency: DelinquencySummary;
+  warnings: string[];
+}

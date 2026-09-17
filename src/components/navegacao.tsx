@@ -48,6 +48,10 @@ export function menuPara(
         // Antes de Cobrancas na leitura, depois na ordem: mede-se durante o
         // mes, fecha-se o rateio no fim.
         ...(canManageCondominium(papel) ? [{ href: '/medicoes', rotulo: 'Medições' }] : []),
+        // Fica nesta secao, e nao em Documentos, porque Documentos comeca no
+        // subsindico e a prestacao de contas e do conselho fiscal para cima —
+        // pedir o balancete a quem se esta auditando nao seria auditoria.
+        { href: '/prestacao-de-contas', rotulo: 'Prestação de contas' },
       ],
     });
   }

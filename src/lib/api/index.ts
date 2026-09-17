@@ -2,6 +2,7 @@ import 'server-only';
 
 import { apiFetch, apiFetchBlob } from '@/lib/api/core';
 import type {
+  MonthlyStatement,
   ApportionmentMethod,
   Address,
   BankAccountKind,
@@ -285,6 +286,15 @@ export const api = {
     image: (id: string) => apiFetchBlob(`/api/cobrancas/${id}/imagem`),
 
     publicImage: (token: string) => apiFetchBlob(`/api/boleto/${token}/imagem`, { auth: false }),
+  },
+
+  accountability: {
+    /** Balancete de uma competência, no formato "MM/AAAA". */
+    monthly: (competence: string) =>
+      apiFetch<MonthlyStatement>('/api/prestacao-de-contas', { query: { competence } }),
+
+    pdf: (competence: string) =>
+      apiFetchBlob('/api/prestacao-de-contas/pdf', { query: { competence } }),
   },
 
   utilityBills: {

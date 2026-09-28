@@ -122,6 +122,8 @@ export interface ConsumptionSeries {
 
 export type BankAccountKind = 'Checking' | 'Savings' | 'Investment' | 'Cash';
 export type EntryDirection = 'In' | 'Out';
+
+export type PaymentMethod = 'Pix' | 'BankSlip' | 'Transfer' | 'Cash' | 'Card' | 'Other';
 export type AccountNature = 'Revenue' | 'Expense';
 
 export interface BankAccountSummary {

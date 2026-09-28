@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { FormularioDeEntrada } from '@/app/entrar/form';
+import { Marca } from '@/components/marca';
 import { Alert, Card } from '@/components/ui';
 
 export const metadata: Metadata = { title: 'Entrar' };
@@ -16,8 +17,7 @@ export default async function PaginaDeEntrada({ searchParams }: PageProps<'/entr
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <p className="text-2xl font-semibold tracking-tight text-brand">Convivium</p>
-          <p className="mt-1 text-sm text-ink-muted">Gestão do seu condomínio</p>
+          <Marca tamanho="lg" descritor />
         </div>
 
         {expirou ? (

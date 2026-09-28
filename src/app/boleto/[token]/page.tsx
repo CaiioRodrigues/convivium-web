@@ -1,3 +1,4 @@
+import { Marca } from '@/components/marca';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
@@ -31,7 +32,7 @@ export default async function PaginaDoBoletoPublico({
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-10">
       <div className="mb-6 text-center">
-        <p className="text-xl font-semibold tracking-tight text-brand">Convivium</p>
+        <Marca tamanho="md" />
         <p className="mt-1 text-sm text-ink-muted">Aviso de cobrança condominial</p>
       </div>
 

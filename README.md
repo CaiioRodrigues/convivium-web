@@ -1,8 +1,13 @@
-# Convivium Web
+# Logement · Portal
 
-Portal de gestão de condomínios. É o front da [`convivium-api`](https://github.com/CaiioRodrigues/convivium-api):
-síndico e conselho acompanham caixa, rateio e inadimplência; o morador vê os
-próprios boletos e paga por PIX.
+Portal da **Logement Administradora**. É o front da
+[`convivium-api`](https://github.com/CaiioRodrigues/convivium-api): síndico e
+conselho acompanham caixa, rateio e inadimplência; o morador vê os próprios
+boletos e paga por PIX.
+
+> O repositório continua com o nome antigo, `convivium-web`. É identificador
+> interno: renomear no GitHub quebraria o `git remote` de todo mundo e as
+> URLs já publicadas, sem mudar uma linha do que o morador vê.
 
 **Next.js 16** (App Router) · React 19 · Tailwind 4 · Recharts.
 

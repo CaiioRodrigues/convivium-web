@@ -1,3 +1,4 @@
+import { Marca } from '@/components/marca';
 import { requireCondominium } from '@/lib/dal';
 import { menuPara } from '@/components/navegacao';
 import { BarraLateral } from '@/components/barra-lateral';
@@ -15,7 +16,7 @@ export default async function LayoutDoPortal({ children }: LayoutProps<'/'>) {
       <aside className="border-b border-line bg-surface lg:w-64 lg:shrink-0 lg:border-r lg:border-b-0">
         <div className="flex h-full flex-col gap-6 px-4 py-5">
           <div>
-            <p className="px-3 text-lg font-semibold tracking-tight text-brand">Convivium</p>
+            <Marca tamanho="sm" className="px-3" />
             <div className="mt-3 px-3">
               <SeletorDeCondominio
                 condominios={sessao.condominiums}

@@ -113,7 +113,7 @@ export default async function PaginaDeCondominios() {
       <div className="mt-6">
         <BotaoDeDemonstracao />
         <p className="mt-2 text-xs text-ink-subtle">
-          Cria o Residencial Convivium com 24 unidades e seis meses de histórico, para ver as
+          Cria o Residencial Modelo com 24 unidades e seis meses de histórico, para ver as
           telas com conteúdo sem mexer nos dados de verdade. Chamar de novo não duplica.
         </p>
       </div>

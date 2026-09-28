@@ -8,8 +8,8 @@ const mono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: {
-    default: 'Convivium',
-    template: '%s · Convivium',
+    default: 'Logement Administradora',
+    template: '%s · Logement',
   },
   description:
     'Gestão de condomínios: caixa, rateio mensal, cobranças com PIX e prestação de contas.',

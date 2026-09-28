@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { FormularioDeEsqueciSenha } from '@/app/esqueci-senha/formulario';
+import { Marca } from '@/components/marca';
 import { Card } from '@/components/ui';
 
 export const metadata: Metadata = {
@@ -20,8 +21,8 @@ export default function PaginaDeEsqueciSenha() {
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <p className="text-2xl font-semibold tracking-tight text-brand">Convivium</p>
-          <p className="mt-1 text-sm text-ink-muted">Recuperar o acesso</p>
+          <Marca tamanho="lg" descritor />
+          <p className="mt-3 text-sm text-ink-muted">Recuperar o acesso</p>
         </div>
 
         <Card className="p-6">

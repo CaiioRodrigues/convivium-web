@@ -3,7 +3,11 @@
 import { useActionState, useState } from 'react';
 
 import { salvarConta, type ResultadoDoCadastro } from '@/lib/actions/cadastros';
-import { lancarNoCaixa, type ResultadoDaAcao } from '@/lib/actions/financeiro';
+import {
+  apagarLancamento,
+  lancarNoCaixa,
+  type ResultadoDaAcao,
+} from '@/lib/actions/financeiro';
 import { RetornoDaAcao } from '@/components/retorno-da-acao';
 import { Button, Field, Input, Select } from '@/components/ui';
 import type { BankAccountSummary, LedgerAccountNode } from '@/lib/types';
@@ -284,4 +288,35 @@ export function NovoLancamento({ contas, plano }: { contas: BankAccountSummary[]
  */
 function achatarTodas(nos: LedgerAccountNode[]): LedgerAccountNode[] {
   return nos.flatMap((no) => (no.isGroup ? achatarTodas(no.children) : [no]));
+}
+
+/**
+ * Apaga um lançamento avulso.
+ *
+ * Só aparece no que foi digitado à mão: lançamento que nasceu de despesa ou
+ * de cobrança tem estorno próprio, na tela de origem, que desfaz o documento
+ * junto. Apagar só a metade do caixa deixaria a despesa marcada como paga
+ * sem o dinheiro ter saído.
+ *
+ * Conciliado também não aparece — a API recusa, e oferecer um botão que
+ * sempre dá erro é pior do que não oferecer.
+ */
+export function ApagarLancamento({ lancamentoId }: { lancamentoId: string }) {
+  const [estado, acao, enviando] = useActionState(apagarLancamento, VAZIO_FINANCEIRO);
+
+  return (
+    <form action={acao} className="flex items-center justify-end gap-2">
+      <input type="hidden" name="lancamentoId" value={lancamentoId} />
+
+      <Button type="submit" variant="ghost" disabled={enviando} className="py-1 text-xs">
+        {enviando ? '…' : 'Apagar'}
+      </Button>
+
+      {estado.erro ? (
+        <span className="text-xs text-negative" role="alert">
+          {estado.erro}
+        </span>
+      ) : null}
+    </form>
+  );
 }

@@ -10,7 +10,10 @@ import { competenceLabel, date, money } from '@/lib/format';
 import { STATUS_DA_COBRANCA, STATUS_DO_CICLO } from '@/lib/rotulos';
 import { linkDeWhatsApp, mensagemDoBoleto } from '@/lib/whatsapp';
 import { EnvioComImagem } from '@/app/(portal)/cobrancas/[cicloId]/envio';
-import { BotaoDeReceber } from '@/app/(portal)/cobrancas/[cicloId]/recebimento';
+import {
+  BotaoDeEstornar,
+  BotaoDeReceber,
+} from '@/app/(portal)/cobrancas/[cicloId]/recebimento';
 import { CabecalhoDePagina } from '@/components/cabecalho-de-pagina';
 import { Alert, Badge, Card, CardHeader, EmptyState, Table, Td, Th } from '@/components/ui';
 
@@ -168,9 +171,12 @@ export default async function PaginaDosBoletosDoCiclo({
 
                     {podeReceber ? (
                       <Td numeric>
-                        {/* Cobrança paga ou cancelada não tem o que receber. */}
-                        {cobranca.status === 'Paid' || cobranca.status === 'Cancelled' ? (
+                        {/* Cancelada não tem o que receber nem o que desfazer.
+                            Quitada ou parcial ganha o estorno no mesmo lugar. */}
+                        {cobranca.status === 'Cancelled' ? (
                           <span className="text-xs text-ink-subtle">—</span>
+                        ) : cobranca.status === 'Paid' ? (
+                          <BotaoDeEstornar cobrancaId={cobranca.id} />
                         ) : (
                           <BotaoDeReceber
                             cobrancaId={cobranca.id}

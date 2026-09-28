@@ -2,7 +2,11 @@
 
 import { useActionState } from 'react';
 
-import { receberCobranca, type ResultadoDaAcao } from '@/lib/actions/financeiro';
+import {
+  estornarRecebimento,
+  receberCobranca,
+  type ResultadoDaAcao,
+} from '@/lib/actions/financeiro';
 import { Button, Input, Select } from '@/components/ui';
 import type { BankAccountSummary } from '@/lib/types';
 
@@ -53,6 +57,33 @@ export function BotaoDeReceber({
 
       <Button type="submit" disabled={enviando} className="py-1.5 text-xs whitespace-nowrap">
         {enviando ? '…' : 'Receber'}
+      </Button>
+
+      {estado.erro ? (
+        <span className="text-xs text-negative" role="alert">
+          {estado.erro}
+        </span>
+      ) : null}
+    </form>
+  );
+}
+
+/**
+ * Desfaz o último recebimento.
+ *
+ * Fica no lugar do botão de receber quando a cobrança já está quitada — a
+ * mesma coluna, porque é a mesma decisão vista do outro lado. Sem ele, um
+ * clique na linha errada só teria conserto no banco de dados.
+ */
+export function BotaoDeEstornar({ cobrancaId }: { cobrancaId: string }) {
+  const [estado, acao, enviando] = useActionState(estornarRecebimento, VAZIO);
+
+  return (
+    <form action={acao} className="flex items-center justify-end gap-2">
+      <input type="hidden" name="cobrancaId" value={cobrancaId} />
+
+      <Button type="submit" variant="ghost" disabled={enviando} className="py-1.5 text-xs">
+        {enviando ? '…' : 'Estornar'}
       </Button>
 
       {estado.erro ? (

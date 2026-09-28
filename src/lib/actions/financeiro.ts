@@ -165,6 +165,66 @@ export async function receberCobranca(
 }
 
 /**
+ * Desfaz o último recebimento de uma cobrança.
+ *
+ * O par do botão de receber. Marcar a linha errada ou digitar o valor errado
+ * acontece — e sem volta, a única saída seria mexer no banco à mão, que é
+ * exatamente o que um sistema existe para evitar.
+ */
+export async function estornarRecebimento(
+  _anterior: ResultadoDaAcao,
+  dados: FormData,
+): Promise<ResultadoDaAcao> {
+  const id = String(dados.get('cobrancaId') ?? '');
+
+  if (!id) return { erro: 'Cobrança não informada.' };
+
+  try {
+    const cobranca = await api.billing.reversePayment(id);
+
+    revalidatePath('/cobrancas');
+    revalidatePath('/cobrancas/[cicloId]', 'page');
+    revalidatePath('/caixa');
+    revalidatePath('/painel');
+    revalidatePath('/prestacao-de-contas');
+
+    return {
+      sucesso: `${cobranca.unitIdentifier}: recebimento estornado e lançamento removido do caixa.`,
+    };
+  } catch (erro) {
+    return tratar(erro);
+  }
+}
+
+/**
+ * Apaga um lançamento avulso do caixa.
+ *
+ * A API recusa o que nasceu de despesa ou de cobrança, e o que já foi
+ * conferido contra o extrato: para esses existem os estornos próprios, que
+ * desfazem o documento junto. Aqui é só o que foi digitado à mão.
+ */
+export async function apagarLancamento(
+  _anterior: ResultadoDaAcao,
+  dados: FormData,
+): Promise<ResultadoDaAcao> {
+  const id = String(dados.get('lancamentoId') ?? '');
+
+  if (!id) return { erro: 'Lançamento não informado.' };
+
+  try {
+    await api.cash.deleteEntry(id);
+
+    revalidatePath('/caixa');
+    revalidatePath('/painel');
+    revalidatePath('/prestacao-de-contas');
+
+    return { sucesso: 'Lançamento apagado.' };
+  } catch (erro) {
+    return tratar(erro);
+  }
+}
+
+/**
  * Lançamento avulso no caixa: o que não nasce de cobrança nem de despesa.
  *
  * Rendimento de poupança, taxa do banco, reembolso, aporte do síndico. Sem

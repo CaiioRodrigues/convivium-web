@@ -15,7 +15,11 @@ import {
   Th,
 } from '@/components/ui';
 import { FiltroDeLancamentos } from '@/app/(portal)/caixa/filtro';
-import { ContaComFormulario, NovoLancamento } from '@/app/(portal)/caixa/formularios';
+import {
+  ApagarLancamento,
+  ContaComFormulario,
+  NovoLancamento,
+} from '@/app/(portal)/caixa/formularios';
 import { canManageCondominium, canManageFinance } from '@/lib/roles';
 
 export const metadata: Metadata = { title: 'Caixa' };
@@ -185,6 +189,7 @@ export default async function PaginaDoCaixa({ searchParams }: PageProps<'/caixa'
                 <Th>Conta contábil</Th>
                 <Th>Conta</Th>
                 <Th numeric>Valor</Th>
+                {podeLancar ? <Th numeric>Ação</Th> : null}
               </tr>
             </thead>
             <tbody>
@@ -210,6 +215,21 @@ export default async function PaginaDoCaixa({ searchParams }: PageProps<'/caixa'
                     <Td numeric className={entrada ? 'text-positive' : 'text-negative'}>
                       {entrada ? '+' : '−'} {amount(lancamento.amount)}
                     </Td>
+
+                    {podeLancar ? (
+                      <Td numeric>
+                        {/* Só o que foi digitado à mão. O que nasceu de
+                            despesa ou cobrança se desfaz na tela de origem,
+                            para o documento e o caixa andarem juntos. */}
+                        {lancamento.expenseId === null &&
+                        lancamento.paymentId === null &&
+                        !lancamento.isReconciled ? (
+                          <ApagarLancamento lancamentoId={lancamento.id} />
+                        ) : (
+                          <span className="text-xs text-ink-subtle">—</span>
+                        )}
+                      </Td>
+                    ) : null}
                   </tr>
                 );
               })}

@@ -175,6 +175,10 @@ export const api = {
       competence?: string;
       documentNumber?: string;
     }) => apiFetch<LedgerEntry>('/api/caixa/lancamentos', { method: 'POST', json: body }),
+
+    /** Só lançamento manual e ainda não conciliado; a API recusa o resto. */
+    deleteEntry: (id: string) =>
+      apiFetch<void>(`/api/caixa/lancamentos/${id}`, { method: 'DELETE' }),
   },
 
   expenses: {
@@ -271,6 +275,10 @@ export const api = {
       id: string,
       body: { amount: number; bankAccountId: string; paidOn?: string; method?: string; notes?: string },
     ) => apiFetch<Charge>(`/api/cobrancas/${id}/receber`, { method: 'POST', json: body }),
+
+    /** Desfaz o último recebimento e remove a entrada do caixa. */
+    reversePayment: (id: string) =>
+      apiFetch<Charge>(`/api/cobrancas/${id}/estornar-recebimento`, { method: 'POST' }),
 
     myCharges: () => apiFetch<Charge[]>('/api/minhas-cobrancas'),
 

@@ -6,7 +6,7 @@ import { competenceLabel, currentCompetence, date, money, percent } from '@/lib/
 import { CabecalhoDePagina } from '@/components/cabecalho-de-pagina';
 import { SeletorDeCompetencia } from '@/components/seletor-de-competencia';
 import { Alert, Badge, Card, CardHeader, EmptyState, Table, Td, Th } from '@/components/ui';
-import type { StatementLine } from '@/lib/types';
+import type { PendingItem, StatementLine } from '@/lib/types';
 
 export const metadata: Metadata = { title: 'Prestação de contas' };
 
@@ -198,6 +198,65 @@ export default async function PaginaDePrestacaoDeContas({
             )}
           </Card>
 
+          {balancete.reserveFund.closing > 0 || balancete.reserveFund.in > 0 ? (
+            <Card className="mb-6">
+              <CardHeader
+                title="Fundo de reserva"
+                description="Dinheiro com destinação própria, definida em convenção — não se confunde com o caixa de operação"
+              />
+              <div className="grid grid-cols-2 gap-4 px-5 py-4 sm:grid-cols-4">
+                <div>
+                  <p className="text-xs tracking-wide text-ink-subtle uppercase">Saldo</p>
+                  <p className="tabular mt-1 text-lg font-semibold text-brand">
+                    {money(balancete.reserveFund.closing)}
+                  </p>
+                  <p className="text-xs text-ink-subtle">
+                    {percent(balancete.reserveFund.shareOfTotal, 0)} do total do condomínio
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs tracking-wide text-ink-subtle uppercase">Anterior</p>
+                  <p className="tabular mt-1 text-lg font-semibold text-ink">
+                    {money(balancete.reserveFund.opening)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs tracking-wide text-ink-subtle uppercase">Entrou</p>
+                  <p className="tabular mt-1 text-lg font-semibold text-positive">
+                    {money(balancete.reserveFund.in)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs tracking-wide text-ink-subtle uppercase">Saiu</p>
+                  <p
+                    className={`tabular mt-1 text-lg font-semibold ${
+                      balancete.reserveFund.out > 0 ? 'text-negative' : 'text-ink'
+                    }`}
+                  >
+                    {money(balancete.reserveFund.out)}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ) : null}
+
+          {/* As duas juntas sao o que permite decidir se cabe uma despesa
+              nova: saldo sozinho engana. */}
+          <div className="mb-6 grid items-start gap-6 lg:grid-cols-2">
+            <Pendencias
+              titulo="Contas a pagar"
+              rotulo="Fornecedor"
+              itens={balancete.payables}
+              tom="negative"
+            />
+            <Pendencias
+              titulo="Contas a receber"
+              rotulo="Unidade"
+              itens={balancete.receivables}
+              tom="positive"
+            />
+          </div>
+
           <Card>
             <CardHeader
               title="Inadimplência"
@@ -227,6 +286,68 @@ export default async function PaginaDePrestacaoDeContas({
         </>
       )}
     </>
+  );
+}
+
+function Pendencias({
+  titulo,
+  rotulo,
+  itens,
+  tom,
+}: {
+  titulo: string;
+  rotulo: string;
+  itens: PendingItem[];
+  tom: 'negative' | 'positive';
+}) {
+  const total = itens.reduce((soma, i) => soma + i.amount, 0);
+
+  return (
+    <Card>
+      <CardHeader
+        title={titulo}
+        description={
+          itens.length === 0
+            ? 'Nada pendente no fim do período'
+            : `${itens.length} item(ns) · ${money(total)}`
+        }
+      />
+
+      {itens.length === 0 ? (
+        <EmptyState title="Nada pendente" />
+      ) : (
+        <Table>
+          <thead>
+            <tr>
+              <Th>{rotulo}</Th>
+              <Th>Vencimento</Th>
+              <Th numeric>Valor</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {itens.map((item, indice) => (
+              <tr key={`${item.description}-${item.dueDate}-${indice}`}>
+                <Td>
+                  <span className="font-medium">{item.counterpart ?? 'Não informado'}</span>
+                  <span className="block text-xs text-ink-subtle">{item.description}</span>
+                </Td>
+                <Td className="whitespace-nowrap text-ink-muted">
+                  {date(item.dueDate)}
+                  {item.daysLate > 0 ? (
+                    <span className="block text-xs text-negative">
+                      {item.daysLate} dia(s) de atraso
+                    </span>
+                  ) : null}
+                </Td>
+                <Td numeric className={tom === 'negative' ? 'text-negative' : undefined}>
+                  {money(item.amount)}
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+    </Card>
   );
 }
 

@@ -617,6 +617,26 @@ export interface StatementEntry {
   reconciled: boolean;
 }
 
+/** Uma pendência no fim do período: conta a pagar ou cobrança a receber. */
+export interface PendingItem {
+  description: string;
+  /** Fornecedor, na conta a pagar; unidade, na conta a receber. */
+  counterpart: string | null;
+  dueDate: string;
+  amount: number;
+  /** Dias de atraso na data do balancete. Zero quando ainda não venceu. */
+  daysLate: number;
+}
+
+export interface ReserveFundBalance {
+  opening: number;
+  in: number;
+  out: number;
+  closing: number;
+  /** Fatia do saldo total do condomínio, de 0 a 1. */
+  shareOfTotal: number;
+}
+
 export interface DelinquencySummary {
   units: number;
   outstanding: number;
@@ -645,6 +665,11 @@ export interface MonthlyStatement {
   expenses: StatementLine[];
   accounts: StatementAccountBalance[];
   entries: StatementEntry[];
+  /** Contas do condomínio ainda não pagas no fim do período. */
+  payables: PendingItem[];
+  /** Cobranças ainda em aberto no fim do período. */
+  receivables: PendingItem[];
+  reserveFund: ReserveFundBalance;
   delinquency: DelinquencySummary;
   warnings: string[];
 }

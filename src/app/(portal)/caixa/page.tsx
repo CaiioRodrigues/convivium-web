@@ -15,8 +15,8 @@ import {
   Th,
 } from '@/components/ui';
 import { FiltroDeLancamentos } from '@/app/(portal)/caixa/filtro';
-import { ContaComFormulario } from '@/app/(portal)/caixa/formularios';
-import { canManageCondominium } from '@/lib/roles';
+import { ContaComFormulario, NovoLancamento } from '@/app/(portal)/caixa/formularios';
+import { canManageCondominium, canManageFinance } from '@/lib/roles';
 
 export const metadata: Metadata = { title: 'Caixa' };
 
@@ -35,7 +35,11 @@ export default async function PaginaDoCaixa({ searchParams }: PageProps<'/caixa'
   const texto = (chave: string) =>
     typeof filtros[chave] === 'string' ? (filtros[chave] as string) : undefined;
 
-  const [posicao, lancamentos] = await Promise.all([
+  // O plano de contas so e usado pelo formulario de lancamento; quem nao
+  // pode lancar nao paga a consulta.
+  const podeLancar = canManageFinance(sessao.activeRole);
+
+  const [posicao, lancamentos, plano] = await Promise.all([
     api.cash.position(),
     api.cash.entries({
       BankAccountId: texto('conta'),
@@ -45,6 +49,7 @@ export default async function PaginaDoCaixa({ searchParams }: PageProps<'/caixa'
       Search: texto('busca'),
       PageSize: 40,
     }),
+    podeLancar ? api.cash.chartOfAccounts() : Promise.resolve([]),
   ]);
 
   return (
@@ -154,7 +159,14 @@ export default async function PaginaDoCaixa({ searchParams }: PageProps<'/caixa'
           description={`${lancamentos.total} movimento(s) no filtro atual`}
         />
 
-        <div className="border-b border-line px-5 py-4">
+        {podeLancar ? (
+          <NovoLancamento
+            contas={posicao.accounts.filter((conta) => conta.isActive)}
+            plano={plano}
+          />
+        ) : null}
+
+        <div className="border-y border-line px-5 py-4">
           <FiltroDeLancamentos contas={posicao.accounts} />
         </div>
 

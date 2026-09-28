@@ -5,10 +5,12 @@ import { notFound } from 'next/navigation';
 
 import { ApiError, api } from '@/lib/api';
 import { requireAccountsAccess } from '@/lib/dal';
+import { canManageFinance } from '@/lib/roles';
 import { competenceLabel, date, money } from '@/lib/format';
 import { STATUS_DA_COBRANCA, STATUS_DO_CICLO } from '@/lib/rotulos';
 import { linkDeWhatsApp, mensagemDoBoleto } from '@/lib/whatsapp';
 import { EnvioComImagem } from '@/app/(portal)/cobrancas/[cicloId]/envio';
+import { BotaoDeReceber } from '@/app/(portal)/cobrancas/[cicloId]/recebimento';
 import { CabecalhoDePagina } from '@/components/cabecalho-de-pagina';
 import { Alert, Badge, Card, CardHeader, EmptyState, Table, Td, Th } from '@/components/ui';
 
@@ -25,16 +27,17 @@ export const metadata: Metadata = { title: 'Boletos do rateio' };
 export default async function PaginaDosBoletosDoCiclo({
   params,
 }: PageProps<'/cobrancas/[cicloId]'>) {
-  await requireAccountsAccess();
+  const sessao = await requireAccountsAccess();
 
   const { cicloId } = await params;
 
-  const [ciclo, condominio] = await Promise.all([
+  const [ciclo, condominio, caixa] = await Promise.all([
     api.billing.cycle(cicloId).catch((erro) => {
       if (erro instanceof ApiError && erro.status === 404) return null;
       throw erro;
     }),
     api.condominium.get(),
+    api.cash.position(),
   ]);
 
   if (!ciclo) notFound();
@@ -46,6 +49,11 @@ export default async function PaginaDosBoletosDoCiclo({
 
   const cabecalhos = await headers();
   const origem = `${cabecalhos.get('x-forwarded-proto') ?? 'http'}://${cabecalhos.get('host')}`;
+
+  // Dar baixa move dinheiro, então é do subsíndico para cima — a mesma regra
+  // de quem pode pagar despesa. Conselho fiscal enxerga, mas não movimenta.
+  const podeReceber = canManageFinance(sessao.activeRole);
+  const contasAtivas = caixa.accounts.filter((conta) => conta.isActive);
 
   const situacao = STATUS_DO_CICLO[ciclo.status];
   const semTelefone = cobrancas.filter((c) => !linkDeWhatsApp(c.payerPhone, 'x')).length;
@@ -99,6 +107,7 @@ export default async function PaginaDosBoletosDoCiclo({
                 <Th numeric>Valor</Th>
                 <Th>Situação</Th>
                 <Th numeric>Enviar</Th>
+                {podeReceber ? <Th numeric>Receber</Th> : null}
               </tr>
             </thead>
             <tbody>
@@ -156,6 +165,21 @@ export default async function PaginaDosBoletosDoCiclo({
                         )}
                       </div>
                     </Td>
+
+                    {podeReceber ? (
+                      <Td numeric>
+                        {/* Cobrança paga ou cancelada não tem o que receber. */}
+                        {cobranca.status === 'Paid' || cobranca.status === 'Cancelled' ? (
+                          <span className="text-xs text-ink-subtle">—</span>
+                        ) : (
+                          <BotaoDeReceber
+                            cobrancaId={cobranca.id}
+                            valorSugerido={cobranca.totalWithLateCharges}
+                            contas={contasAtivas}
+                          />
+                        )}
+                      </Td>
+                    ) : null}
                   </tr>
                 );
               })}

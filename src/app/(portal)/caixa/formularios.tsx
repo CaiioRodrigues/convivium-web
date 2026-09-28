@@ -3,11 +3,13 @@
 import { useActionState, useState } from 'react';
 
 import { salvarConta, type ResultadoDoCadastro } from '@/lib/actions/cadastros';
+import { lancarNoCaixa, type ResultadoDaAcao } from '@/lib/actions/financeiro';
 import { RetornoDaAcao } from '@/components/retorno-da-acao';
 import { Button, Field, Input, Select } from '@/components/ui';
-import type { BankAccountSummary } from '@/lib/types';
+import type { BankAccountSummary, LedgerAccountNode } from '@/lib/types';
 
 const VAZIO: ResultadoDoCadastro = {};
+const VAZIO_FINANCEIRO: ResultadoDaAcao = {};
 
 /**
  * Uma conta dobrada num expansor, com o formulario dentro.
@@ -170,4 +172,116 @@ export function FormularioDeConta({ conta }: { conta?: BankAccountSummary }) {
       </div>
     </form>
   );
+}
+
+/**
+ * Lançamento avulso: o dinheiro que não nasce de cobrança nem de despesa.
+ *
+ * Rendimento de poupança, tarifa do banco, reembolso de fornecedor, aporte
+ * do síndico. Sem esta tela, tudo isso ficava de fora e o saldo do sistema
+ * deixava de bater com o extrato — que é justamente o número que o conselho
+ * confere.
+ *
+ * Mesmo `<details>` controlado do formulário de conta acima, pelo mesmo
+ * motivo: sem ele, o `revalidatePath` fecharia o expansor e levaria junto a
+ * confirmação de que salvou.
+ */
+export function NovoLancamento({ contas, plano }: { contas: BankAccountSummary[]; plano: LedgerAccountNode[] }) {
+  const [aberto, setAberto] = useState(false);
+  const [estado, acao, enviando] = useActionState(lancarNoCaixa, VAZIO_FINANCEIRO);
+
+  const folhas = achatarTodas(plano);
+  const hoje = new Date().toISOString().slice(0, 10);
+
+  return (
+    <details
+      open={aberto}
+      onToggle={(evento) => setAberto(evento.currentTarget.open)}
+      className="border-t border-line"
+    >
+      <summary className="cursor-pointer px-5 py-3 text-sm font-medium text-brand select-none">
+        Novo lançamento
+      </summary>
+
+      <form action={acao} className="grid gap-4 px-5 pb-5 sm:grid-cols-6">
+        <div className="sm:col-span-2">
+          <Field label="Tipo">
+            <Select name="direcao" defaultValue="Out">
+              <option value="In">Entrada</option>
+              <option value="Out">Saída</option>
+            </Select>
+          </Field>
+        </div>
+
+        <div className="sm:col-span-2">
+          <Field label="Conta bancária">
+            <Select name="contaId" required>
+              {contas.map((conta) => (
+                <option key={conta.id} value={conta.id}>
+                  {conta.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+
+        <div className="sm:col-span-2">
+          <Field label="Data">
+            <Input name="data" type="date" defaultValue={hoje} required />
+          </Field>
+        </div>
+
+        <div className="sm:col-span-3">
+          <Field label="Descrição" hint="O que aparece no extrato e no balancete">
+            <Input name="descricao" placeholder="Rendimento da poupança" required />
+          </Field>
+        </div>
+
+        <div className="sm:col-span-3">
+          <Field label="Conta contábil">
+            <Select name="contaContabilId" required>
+              {folhas.map((no) => (
+                <option key={no.id} value={no.id}>
+                  {no.code} · {no.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+
+        <div className="sm:col-span-2">
+          <Field label="Valor (R$)">
+            <Input name="valor" type="text" inputMode="decimal" placeholder="0,00" required />
+          </Field>
+        </div>
+
+        <div className="sm:col-span-2">
+          <Field label="Documento" hint="Opcional">
+            <Input name="documento" placeholder="NF 1234" />
+          </Field>
+        </div>
+
+        <div className="flex items-end sm:col-span-2">
+          <Button type="submit" disabled={enviando} className="w-full">
+            {enviando ? 'Lançando…' : 'Lançar'}
+          </Button>
+        </div>
+
+        <div className="sm:col-span-6">
+          <RetornoDaAcao estado={estado} />
+        </div>
+      </form>
+    </details>
+  );
+}
+
+/**
+ * Só as folhas do plano de contas, de qualquer natureza.
+ *
+ * Diferente do formulário de despesa, que filtra por `Expense`: aqui o
+ * lançamento pode ser entrada ou saída, e limitar a um lado impediria de
+ * registrar um rendimento.
+ */
+function achatarTodas(nos: LedgerAccountNode[]): LedgerAccountNode[] {
+  return nos.flatMap((no) => (no.isGroup ? achatarTodas(no.children) : [no]));
 }
